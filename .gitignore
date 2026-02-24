@@ -1,0 +1,6 @@
+# 忽略 Docker 生成的中间件数据文件夹
+/mysql/
+/nacos/
+/neo4j/
+/redis/
+/sentinel-docker/

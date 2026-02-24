@@ -1,0 +1,123 @@
+version: '3.8'
+
+services:
+  # 1. MySQL 8.0 数据库
+  mysql:
+    image: mysql:8.0.33
+    container_name: smartx-mysql
+    restart: always
+    ports:
+      - "3306:3306"
+    environment:
+      - MYSQL_ROOT_PASSWORD=SmartX@123
+      - MYSQL_DATABASE=smartx_wms
+      - TZ=Asia/Shanghai
+    volumes:
+      - ./mysql/data:/var/lib/mysql
+      - ./sql:/docker-entrypoint-initdb.d   # 自动建表脚本目录
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+
+  # 2. Neo4j 图数据库
+  neo4j:
+    image: neo4j:5.18.0
+    container_name: smartx-neo4j
+    restart: always
+    ports:
+      - "7474:7474"                         # 图形化界面端口
+      - "7687:7687"                         # 程序连接端口
+    environment:
+      - NEO4J_AUTH=neo4j/SmartX@123
+      - NEO4J_PLUGINS=["apoc"]
+    volumes:
+      - ./neo4j/data:/data
+      - ./neo4j/logs:/logs
+
+  # 3. Redis 缓存与分布式锁
+  redis:
+    image: redis:7.0
+    container_name: smartx-redis
+    restart: always
+    ports:
+      - "6379:6379"
+    volumes:
+      - ./redis/data:/data
+    command: redis-server --requirepass SmartX@123 --appendonly yes
+
+  # 4. Nacos 注册中心与配置中心 (带鉴权完整版)
+  nacos:
+    image: nacos/nacos-server:v2.2.3
+    container_name: smartx-nacos
+    restart: always
+    ports:
+      - "8848:8848"                         # 控制台端口
+      - "9848:9848"                         # gRPC 客户端通信端口
+      - "9849:9849"                         # gRPC 服务端通信端口
+    environment:
+      - MODE=standalone                     # 单机模式运行
+      - PREFER_HOST_MODE=hostname           # 优先使用主机名
+      - NACOS_AUTH_ENABLE=true              # 开启认证
+      - NACOS_AUTH_IDENTITY_KEY=hyl         # 自定义身份识别 Key
+      - NACOS_AUTH_IDENTITY_VALUE=hyl       # 自定义身份识别 Value
+      - NACOS_AUTH_TOKEN=ZGF3ZHdhZHdhZHdhZGF3ZHdkYXdkcXcxMzEyZGF3ZXFlcXdlZGFk # Base64 密钥
+      - JVM_XMS=256m                        # 限制初始内存
+      - JVM_XMX=256m                        # 限制最大内存
+      - TZ=Asia/Shanghai                    # 容器时区
+    volumes:
+      - ./nacos/logs:/home/nacos/logs       # Nacos 日志持久化
+      - ./nacos/data:/home/nacos/data       # Nacos 数据持久化
+
+  # 5. Sentinel 限流降级与熔断监控看板
+  sentinel:
+    image: bladex/sentinel-dashboard:1.8.6
+    container_name: smartx-sentinel
+    restart: always
+    ports:
+      - "8858:8858"                         # 映射到 8858 避免冲突
+    environment:
+      - SERVER_PORT=8858
+      - CSP_SENTINEL_DASHBOARD_SERVER=localhost:8858
+      - PROJECT_NAME=sentinel-dashboard
+      - TZ=Asia/Shanghai
+
+  # 6. RocketMQ NameServer (路由中心)
+  rmqnamesrv:
+    image: apache/rocketmq:4.9.4
+    container_name: smartx-rmqnamesrv
+    restart: always
+    ports:
+      - "9876:9876"
+    command: sh mqnamesrv
+    environment:
+      - JAVA_OPT_EXT=-Xms256m -Xmx256m -Xmn128m
+      - TZ=Asia/Shanghai
+
+  # 7. RocketMQ Broker (消息存储中心)
+  rmqbroker:
+    image: apache/rocketmq:4.9.4
+    container_name: smartx-rmqbroker
+    restart: always
+    ports:
+      - "10909:10909"
+      - "10911:10911"
+    environment:
+      - NAMESRV_ADDR=rmqnamesrv:9876
+      - JAVA_OPT_EXT=-Xms256m -Xmx256m -Xmn128m
+      - TZ=Asia/Shanghai
+    command: sh mqbroker -n rmqnamesrv:9876 -c /opt/rocketmq-4.9.4/conf/broker.conf
+    depends_on:
+      - rmqnamesrv
+
+  # 8. RocketMQ 控制台 (可视化面板)
+  rmqdashboard:
+    image: apacherocketmq/rocketmq-dashboard:latest
+    container_name: smartx-rmqdashboard
+    restart: always
+    ports:
+      - "8081:8080"                         # 宿主机用 8081 访问
+    environment:
+      - JAVA_OPTS=-Drocketmq.namesrv.addr=rmqnamesrv:9876 -Dcom.rocketmq.sendMessageWithVIPChannel=false
+      - TZ=Asia/Shanghai
+    depends_on:
+      - rmqnamesrv

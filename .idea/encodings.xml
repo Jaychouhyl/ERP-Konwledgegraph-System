@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="Encoding">
+    <file url="file://$PROJECT_DIR$/EKG-backend/smartx-api/api-auth/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/EKG-backend/smartx-api/api-auth/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/EKG-backend/smartx-api/api-inventory/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/EKG-backend/smartx-api/api-inventory/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/EKG-backend/smartx-api/api-purchase/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/EKG-backend/smartx-api/api-purchase/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/EKG-backend/smartx-api/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/EKG-backend/smartx-api/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/EKG-backend/smartx-common/common-core/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/EKG-backend/smartx-common/common-core/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/EKG-backend/smartx-common/common-redis/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/EKG-backend/smartx-common/common-redis/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/EKG-backend/smartx-common/common-security/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/EKG-backend/smartx-common/common-security/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/EKG-backend/smartx-common/common-web/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/EKG-backend/smartx-common/common-web/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/EKG-backend/smartx-common/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/EKG-backend/smartx-common/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/EKG-backend/smartx-gateway/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/EKG-backend/smartx-gateway/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/EKG-backend/smartx-modules/auth-service/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/EKG-backend/smartx-modules/auth-service/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/EKG-backend/smartx-modules/finance-service/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/EKG-backend/smartx-modules/finance-service/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/EKG-backend/smartx-modules/rag-decision-service/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/EKG-backend/smartx-modules/rag-decision-service/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/EKG-backend/smartx-modules/sales-service/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/EKG-backend/smartx-modules/sales-service/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/EKG-backend/smartx-modules/scm-service/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/EKG-backend/smartx-modules/scm-service/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/EKG-backend/smartx-modules/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/EKG-backend/smartx-modules/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/EKG-backend/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/EKG-backend/src/main/resources" charset="UTF-8" />
+  </component>
+</project>
