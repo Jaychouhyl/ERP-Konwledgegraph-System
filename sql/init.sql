@@ -129,3 +129,46 @@ CREATE TABLE `fin_cash_flow` (
   `create_time` datetime DEFAULT CURRENT_TIMESTAMP, 
   PRIMARY KEY (`id`) 
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='财务资金流水表';
+-- ==========================================================
+-- 补充：系统权限与角色模块 (auth-service 完善)
+-- 对应功能点(1) 角色划分及权限控制
+-- ==========================================================
+
+-- 角色表
+CREATE TABLE `sys_role` (
+                            `id` bigint NOT NULL AUTO_INCREMENT COMMENT '角色ID',
+                            `role_name` varchar(30) NOT NULL COMMENT '角色名称(如: 仓管员, 采购员, 管理员)',
+                            `role_code` varchar(100) NOT NULL COMMENT '角色权限字符串(如: admin, stock_manager)',
+                            `status` tinyint(1) DEFAULT '1' COMMENT '角色状态(1正常 0停用)',
+                            `create_time` datetime DEFAULT CURRENT_TIMESTAMP,
+                            `update_time` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                            `is_deleted` tinyint(1) DEFAULT '0' COMMENT '逻辑删除',
+                            PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='系统角色表';
+
+-- 菜单与权限规则表
+CREATE TABLE `sys_menu` (
+                            `id` bigint NOT NULL AUTO_INCREMENT COMMENT '菜单ID',
+                            `parent_id` bigint DEFAULT '0' COMMENT '父菜单ID',
+                            `menu_name` varchar(50) NOT NULL COMMENT '菜单名称',
+                            `path` varchar(200) DEFAULT '' COMMENT '路由地址',
+                            `perms` varchar(100) DEFAULT NULL COMMENT '权限标识(如: scm:purchase:add)',
+                            `menu_type` char(1) DEFAULT '' COMMENT '菜单类型(M目录 C菜单 F按钮)',
+                            `create_time` datetime DEFAULT CURRENT_TIMESTAMP,
+                            PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='菜单与权限规则表';
+
+-- ==========================================================
+-- 补充：销售订单明细模块 (sales-service 完善)
+-- ==========================================================
+
+-- 销售订单明细表
+CREATE TABLE `sls_sales_detail` (
+                                    `id` bigint NOT NULL AUTO_INCREMENT,
+                                    `sales_order_id` bigint NOT NULL COMMENT '关联销售主单ID',
+                                    `material_id` bigint NOT NULL COMMENT '成品物料ID(如: SmartX-1型号手机)',
+                                    `quantity` int NOT NULL COMMENT '销售数量',
+                                    `unit_price` decimal(10,2) NOT NULL COMMENT '销售单价',
+                                    `total_price` decimal(10,2) NOT NULL COMMENT '明细总价',
+                                    PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='销售订单明细表';

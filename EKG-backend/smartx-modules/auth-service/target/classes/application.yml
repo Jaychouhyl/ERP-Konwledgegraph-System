@@ -1,13 +1,17 @@
 server:
-  port: 8083
+  port: 8082
 
 spring:
   application:
-    name: finance-service
+    name: auth-service
   cloud:
     nacos:
       discovery:
         server-addr: 127.0.0.1:8848
+        username: nacos
+        password: nacos
       config:
         server-addr: 127.0.0.1:8848
+        username: nacos
+        password: nacos
         file-extension: yaml
