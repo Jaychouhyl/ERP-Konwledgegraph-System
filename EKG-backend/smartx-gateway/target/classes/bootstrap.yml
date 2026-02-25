@@ -1,17 +1,28 @@
 server:
-  port: 8084
+  port: 8080
 
 spring:
+  profiles:
+    active: dev
   application:
-    name: sales-service
+    name: smartx-gateway
   cloud:
     nacos:
       discovery:
         server-addr: 127.0.0.1:8848
         username: nacos
         password: nacos
+        namespace: public
+        group: DEFAULT_GROUP
       config:
         server-addr: 127.0.0.1:8848
         username: nacos
         password: nacos
+        namespace: public
+        group: DEFAULT_GROUP
         file-extension: yaml
+        refresh-enabled: true
+    gateway:
+      discovery:
+        locator:
+          enabled: true
