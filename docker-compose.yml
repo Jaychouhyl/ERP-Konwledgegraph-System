@@ -61,12 +61,10 @@ services:
       - NACOS_AUTH_IDENTITY_KEY=hyl         # 自定义身份识别 Key
       - NACOS_AUTH_IDENTITY_VALUE=hyl       # 自定义身份识别 Value
       - NACOS_AUTH_TOKEN=ZGF3ZHdhZHdhZHdhZGF3ZHdkYXdkcXcxMzEyZGF3ZXFlcXdlZGFk # Base64 密钥
-      - JVM_XMS=256m                        # 限制初始内存
-      - JVM_XMX=256m                        # 限制最大内存
       - TZ=Asia/Shanghai                    # 容器时区
     volumes:
       - ./nacos/logs:/home/nacos/logs       # Nacos 日志持久化
-      - ./nacos/data:/home/nacos/data       # Nacos 数据持久化
+      #- ./nacos/data:/home/nacos/data       # Nacos 数据持久化
 
   # 5. Sentinel 限流降级与熔断监控看板
   sentinel:
@@ -105,7 +103,7 @@ services:
       - NAMESRV_ADDR=rmqnamesrv:9876
       - JAVA_OPT_EXT=-Xms256m -Xmx256m -Xmn128m
       - TZ=Asia/Shanghai
-    command: sh mqbroker -n rmqnamesrv:9876 -c /opt/rocketmq-4.9.4/conf/broker.conf
+    command: sh mqbroker -n rmqnamesrv:9876 autoCreateTopicEnable=true
     depends_on:
       - rmqnamesrv
 
