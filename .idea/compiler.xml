@@ -13,6 +13,7 @@
         <module name="api-inventory" />
         <module name="common-redis" />
         <module name="auth-service" />
+        <module name="api-finance" />
         <module name="rag-decision-service" />
         <module name="api-purchase" />
         <module name="common-web" />

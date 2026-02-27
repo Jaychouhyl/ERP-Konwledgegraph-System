@@ -12,6 +12,6 @@ public interface RemoteInventoryService {
     /**
      * 检查库存是否充足
      */
-    @GetMapping("/api/scm/inventory/check")
+    @GetMapping("/scm/inventory/check")
     Boolean checkStock(@RequestParam("productId") Long productId);
 }

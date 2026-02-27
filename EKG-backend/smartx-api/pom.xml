@@ -16,6 +16,7 @@
         <module>api-auth</module>
         <module>api-inventory</module>
         <module>api-purchase</module>
+        <module>api-finance</module>
     </modules>
 
 </project>
