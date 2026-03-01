@@ -33,3 +33,18 @@ a,
     padding: 0 2rem;
   }
 }
+
+/* 🌟 移植 Vben 最核心的交错进场动画引擎 */
+.enter-y {
+  opacity: 0;
+  transform: translateY(30px);
+  /* 极其柔和的物理弹簧缓动曲线 */
+  animation: enter-y-animation 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes enter-y-animation {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
