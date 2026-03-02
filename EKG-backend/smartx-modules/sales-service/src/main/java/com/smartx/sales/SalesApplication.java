@@ -7,7 +7,7 @@ import org.springframework.cloud.openfeign.EnableFeignClients;
 
 @SpringBootApplication
 @EnableDiscoveryClient
-@EnableFeignClients(basePackages = "com.smartx.api")
+@EnableFeignClients(basePackages = {"com.smartx.api", "com.smartx.sales.api"})
 public class SalesApplication {
     public static void main(String[] args) {
         SpringApplication.run(SalesApplication.class, args);

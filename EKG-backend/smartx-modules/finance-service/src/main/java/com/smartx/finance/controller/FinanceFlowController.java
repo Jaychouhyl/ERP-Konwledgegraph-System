@@ -1,19 +1,32 @@
 package com.smartx.finance.controller;
 
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import com.smartx.finance.service.CashFlowService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.*;
+
 import java.math.BigDecimal;
+import java.util.HashMap;
+import java.util.Map;
 
 @RestController
-@RequestMapping("/finance/flow") // 注意不要加 /api
+@RequestMapping("/finance/flow")
 public class FinanceFlowController {
 
-    @PostMapping("/record")
-    public Boolean recordCashFlow(@RequestParam("type") Integer type, @RequestParam("amount") BigDecimal amount) {
-        String typeName = type == 1 ? "收入" : "支出";
-        System.out.println("====== 财务服务收到记账请求：[" + typeName + "] 金额：" + amount + " ======");
-        return true;
+    @Autowired
+    private CashFlowService cashFlowService;
+
+    // 供其他微服务调用的内部接口：记账
+    @PostMapping("/internal/record")
+    public Map<String, Object> recordFlow(@RequestParam("flowType") String flowType, 
+                                          @RequestParam("amount") BigDecimal amount, 
+                                          @RequestParam("businessType") String businessType, 
+                                          @RequestParam("businessId") Long businessId) {
+        String flowNo = cashFlowService.recordCashFlow(flowType, amount, businessType, businessId);
+        
+        Map<String, Object> result = new HashMap<>();
+        result.put("code", 0);
+        result.put("data", flowNo);
+        result.put("msg", "资金流水记录成功");
+        return result;
     }
 }

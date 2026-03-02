@@ -1,0 +1,6 @@
+{
+  "dependencies": {
+    "@iconify-json/mdi": "^1.2.3",
+    "@iconify/vue": "^5.0.0"
+  }
+}

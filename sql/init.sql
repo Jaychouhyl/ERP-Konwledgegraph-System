@@ -172,3 +172,12 @@ CREATE TABLE `sls_sales_detail` (
                                     `total_price` decimal(10,2) NOT NULL COMMENT '明细总价',
                                     PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='销售订单明细表';
+
+
+-- 插入一个测试成品：SmartX-1 手机
+INSERT INTO `base_material` (`id`, `material_code`, `material_name`, `material_type`, `unit`, `standard_cost`, `description`)
+VALUES (1, 'PHONE-01', 'SmartX-1 智能手机', 'FINISHED', '台', 500.00, '年度旗舰机型');
+
+-- 给这个手机初始化 100 台库存
+INSERT INTO `scm_inventory` (`id`, `material_id`, `current_quantity`, `safe_quantity`, `warehouse_location`)
+VALUES (1, 1, 100, 20, 'WH-A-01');
