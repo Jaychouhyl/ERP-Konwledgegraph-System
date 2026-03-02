@@ -2,7 +2,7 @@ package com.smartx.scm.controller;
 
 import com.smartx.scm.service.PurchaseService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -18,7 +18,7 @@ public class PurchaseController {
     @Autowired
     private PurchaseService purchaseService;
 
-    @GetMapping("/create")
+    @PostMapping("/create")
     public Map<String, Object> createPurchase(@RequestParam("materialId") Long materialId,
                                               @RequestParam("quantity") Integer quantity) {
         Map<String, Object> result = new HashMap<>();

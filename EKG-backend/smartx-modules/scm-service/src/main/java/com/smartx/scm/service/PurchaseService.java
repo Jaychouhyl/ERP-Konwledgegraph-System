@@ -2,6 +2,7 @@ package com.smartx.scm.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.smartx.scm.api.FinanceFeignClient;
+import com.smartx.scm.context.UserContextHolder;
 import com.smartx.scm.domain.entity.PurchaseOrder;
 import com.smartx.scm.domain.entity.PurchaseOrderDetail;
 import com.smartx.scm.domain.entity.ScmInventory;
@@ -38,6 +39,13 @@ public class PurchaseService {
         BigDecimal totalAmount = unitPrice.multiply(new BigDecimal(quantity));
         order.setTotalAmount(totalAmount);
         order.setAuditStatus("PASS"); // 目前默认直接通过，以后这里会接入 RAG 智能审核！
+        
+        // 🌟🌟 见证奇迹的时刻：不需要通过参数层层传递，直接从空中抓取当前登录用户的 ID！
+        Long currentUserId = UserContextHolder.getUserId();
+        if (currentUserId != null) {
+            order.setCreateBy(currentUserId);
+        }
+
         purchaseOrderMapper.insert(order);
 
         // 2. 创建明细
