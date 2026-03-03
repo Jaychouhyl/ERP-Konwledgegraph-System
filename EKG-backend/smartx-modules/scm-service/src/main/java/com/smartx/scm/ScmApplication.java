@@ -7,9 +7,9 @@ import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 
 import org.springframework.cloud.openfeign.EnableFeignClients;
 
-@SpringBootApplication
+@SpringBootApplication(scanBasePackages = {"com.smartx"})
 @EnableDiscoveryClient
-@EnableFeignClients(basePackages = "com.smartx.scm.api")
+@EnableFeignClients(basePackages = {"com.smartx.scm", "com.smartx.api"})
 @MapperScan("com.smartx.scm.mapper")
 public class ScmApplication {
     public static void main(String[] args) {

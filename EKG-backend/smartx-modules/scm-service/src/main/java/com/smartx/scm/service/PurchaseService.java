@@ -1,8 +1,9 @@
 package com.smartx.scm.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.smartx.scm.api.FinanceFeignClient;
-import com.smartx.scm.context.UserContextHolder;
+import com.smartx.api.finance.RemoteFinanceService;
+import com.smartx.common.core.domain.Result;
+import com.smartx.common.security.context.UserContextHolder;
 import com.smartx.scm.domain.entity.PurchaseOrder;
 import com.smartx.scm.domain.entity.PurchaseOrderDetail;
 import com.smartx.scm.domain.entity.ScmInventory;
@@ -14,7 +15,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.util.Map;
 import java.util.UUID;
 
 @Service
@@ -27,7 +27,7 @@ public class PurchaseService {
     @Autowired
     private ScmInventoryMapper inventoryMapper;
     @Autowired
-    private FinanceFeignClient financeFeignClient;
+    private RemoteFinanceService remoteFinanceService;
 
     @Transactional(rollbackFor = Exception.class)
     public String executePurchase(Long materialId, Integer quantity, BigDecimal unitPrice) {
@@ -67,14 +67,14 @@ public class PurchaseService {
         }
 
         // 4. 🌟 跨服务调用：通知财务支出打款！
-        Map<String, Object> financeResult = financeFeignClient.recordFlow(
+        Result<?> financeResult = remoteFinanceService.recordFlow(
                 "OUT",           // 支出！
                 totalAmount,     // 采购总金额
                 "PURCHASE",      // 业务类型：采购
                 order.getId()
         );
 
-        if (financeResult == null || (Integer) financeResult.get("code") != 0) {
+        if (financeResult == null || financeResult.getCode() != 0) {
             throw new RuntimeException("财务付款失败，采购入库回滚！");
         }
 

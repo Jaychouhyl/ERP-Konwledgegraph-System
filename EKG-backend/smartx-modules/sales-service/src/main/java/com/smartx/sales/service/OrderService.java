@@ -1,7 +1,8 @@
 package com.smartx.sales.service;
 
-import com.smartx.sales.api.FinanceFeignClient;
-import com.smartx.sales.api.ScmFeignClient;
+import com.smartx.api.finance.RemoteFinanceService;
+import com.smartx.api.inventory.RemoteInventoryService;
+import com.smartx.common.core.domain.Result;
 import com.smartx.sales.domain.entity.SalesOrder;
 import com.smartx.sales.domain.entity.SalesOrderDetail;
 import com.smartx.sales.mapper.SalesOrderDetailMapper;
@@ -11,7 +12,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.util.Map;
 import java.util.UUID;
 
 @Service
@@ -24,22 +24,21 @@ public class OrderService {
     private SalesOrderDetailMapper orderDetailMapper;
 
     @Autowired
-    private ScmFeignClient scmFeignClient; // 🌟 注入我们刚刚写的这把“倚天剑”
+    private RemoteInventoryService remoteInventoryService;
 
     @Autowired
-    private FinanceFeignClient financeFeignClient; // 🌟 注入第二把“倚天剑”
+    private RemoteFinanceService remoteFinanceService;
 
     @Transactional(rollbackFor = Exception.class)
     public String createOrderAndDeductInventory(Long productId, Integer quantity) {
         
         // 1. 🌟 跨服务调用：去 SCM 扣减库存
-        // 假设你要卖 1 台手机
-        Map<String, Object> feignResult = scmFeignClient.deductInventory(productId, quantity);
+        Result<?> feignResult = remoteInventoryService.deductInventory(productId, quantity);
         
         // 检查 Feign 调用是否成功 (判断 code 是否为 0)
-        if (feignResult == null || (Integer) feignResult.get("code") != 0) {
+        if (feignResult == null || feignResult.getCode() != 0) {
             throw new RuntimeException("跨服务扣减库存失败！原因：" + 
-                    (feignResult != null ? feignResult.get("msg") : "网络异常"));
+                    (feignResult != null ? feignResult.getMsg() : "网络异常"));
         }
 
         // 2. 扣减成功，开始在本地创建销售订单主表
@@ -64,14 +63,14 @@ public class OrderService {
         orderDetailMapper.insert(detail);
 
         // 4. 🌟 跨服务调用二：通知财务中心入账！
-        Map<String, Object> financeResult = financeFeignClient.recordFlow(
+        Result<?> financeResult = remoteFinanceService.recordFlow(
                 "IN",            // 收入
                 totalPrice,      // 订单总金额
                 "SALES",         // 业务类型：销售
                 order.getId()    // 刚生成的订单ID
         );
 
-        if (financeResult == null || (Integer) financeResult.get("code") != 0) {
+        if (financeResult == null || financeResult.getCode() != 0) {
             throw new RuntimeException("财务核算失败！入账异常取消交易。");
         }
 
