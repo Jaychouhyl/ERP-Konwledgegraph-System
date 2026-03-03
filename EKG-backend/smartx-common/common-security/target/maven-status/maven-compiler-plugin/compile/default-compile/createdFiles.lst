@@ -1,0 +1,3 @@
+com\smartx\common\security\context\UserContextHolder.class
+com\smartx\common\security\interceptor\UserInfoInterceptor.class
+com\smartx\common\security\config\SecurityWebMvcConfig.class

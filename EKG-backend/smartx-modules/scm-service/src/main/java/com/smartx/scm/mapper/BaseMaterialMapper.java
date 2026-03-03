@@ -1,6 +1,6 @@
 package com.smartx.scm.mapper;
 
-import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import com.mybatisflex.core.BaseMapper;
 import com.smartx.scm.domain.entity.BaseMaterial;
 import org.apache.ibatis.annotations.Mapper;
 

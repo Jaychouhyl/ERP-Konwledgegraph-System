@@ -1,5 +1,6 @@
 package com.smartx.scm.controller;
 
+import com.mybatisflex.core.query.QueryWrapper;
 import com.smartx.scm.domain.entity.BaseMaterial;
 import com.smartx.scm.mapper.BaseMaterialMapper;
 import com.smartx.scm.service.InventoryService;
@@ -39,7 +40,7 @@ public class MaterialController {
         }
 
         // 第二步：抽屉里没有，老老实实去 MySQL 查
-        List<BaseMaterial> list = materialMapper.selectList(null);
+        List<BaseMaterial> list = materialMapper.selectListByQuery(QueryWrapper.create());
 
         // 第三步：查出来之后，放进抽屉里（缓存 2 小时）
         redisService.setCacheObject(MATERIAL_CACHE_KEY, list, 2, TimeUnit.HOURS);
@@ -70,7 +71,7 @@ public class MaterialController {
     @PutMapping("/update")
     public Result<Void> updateMaterial(@RequestBody BaseMaterial material) {
         // MyBatis-Plus 会根据传进来的 id 自动去更新对应的非空字段
-        materialMapper.updateById(material);
+        materialMapper.update(material);
         redisService.deleteObject(MATERIAL_CACHE_KEY);
         return Result.success("修改物料成功！", null);
     }

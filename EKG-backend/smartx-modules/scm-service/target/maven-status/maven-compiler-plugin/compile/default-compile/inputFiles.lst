@@ -1,0 +1,16 @@
+C:\Users\admin\ERP-Konwledgegraph-System\EKG-backend\smartx-modules\scm-service\src\main\java\com\smartx\scm\service\PurchaseService.java
+C:\Users\admin\ERP-Konwledgegraph-System\EKG-backend\smartx-modules\scm-service\src\main\java\com\smartx\scm\mapper\PurchaseOrderMapper.java
+C:\Users\admin\ERP-Konwledgegraph-System\EKG-backend\smartx-modules\scm-service\src\main\java\com\smartx\scm\controller\InventoryController.java
+C:\Users\admin\ERP-Konwledgegraph-System\EKG-backend\smartx-modules\scm-service\src\main\java\com\smartx\scm\mapper\BaseMaterialMapper.java
+C:\Users\admin\ERP-Konwledgegraph-System\EKG-backend\smartx-modules\scm-service\src\main\java\com\smartx\scm\mapper\ScmInventoryMapper.java
+C:\Users\admin\ERP-Konwledgegraph-System\EKG-backend\smartx-modules\scm-service\src\main\java\com\smartx\scm\domain\purchase\entity\PurchaseOrder.java
+C:\Users\admin\ERP-Konwledgegraph-System\EKG-backend\smartx-modules\scm-service\src\main\java\com\smartx\scm\domain\entity\BaseMaterial.java
+C:\Users\admin\ERP-Konwledgegraph-System\EKG-backend\smartx-modules\scm-service\src\main\java\com\smartx\scm\domain\entity\PurchaseOrder.java
+C:\Users\admin\ERP-Konwledgegraph-System\EKG-backend\smartx-modules\scm-service\src\main\java\com\smartx\scm\domain\entity\ScmInventory.java
+C:\Users\admin\ERP-Konwledgegraph-System\EKG-backend\smartx-modules\scm-service\src\main\java\com\smartx\scm\domain\purchase\repository\IPurchaseRepository.java
+C:\Users\admin\ERP-Konwledgegraph-System\EKG-backend\smartx-modules\scm-service\src\main\java\com\smartx\scm\mapper\PurchaseOrderDetailMapper.java
+C:\Users\admin\ERP-Konwledgegraph-System\EKG-backend\smartx-modules\scm-service\src\main\java\com\smartx\scm\controller\PurchaseController.java
+C:\Users\admin\ERP-Konwledgegraph-System\EKG-backend\smartx-modules\scm-service\src\main\java\com\smartx\scm\ScmApplication.java
+C:\Users\admin\ERP-Konwledgegraph-System\EKG-backend\smartx-modules\scm-service\src\main\java\com\smartx\scm\domain\entity\PurchaseOrderDetail.java
+C:\Users\admin\ERP-Konwledgegraph-System\EKG-backend\smartx-modules\scm-service\src\main\java\com\smartx\scm\controller\MaterialController.java
+C:\Users\admin\ERP-Konwledgegraph-System\EKG-backend\smartx-modules\scm-service\src\main\java\com\smartx\scm\service\InventoryService.java

@@ -1,0 +1,2 @@
+com\smartx\common\redis\config\RedisConfig.class
+com\smartx\common\redis\service\RedisService.class

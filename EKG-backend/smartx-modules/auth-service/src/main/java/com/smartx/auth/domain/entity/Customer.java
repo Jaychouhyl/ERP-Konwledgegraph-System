@@ -1,15 +1,15 @@
 package com.smartx.auth.domain.entity;
 
-import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableId;
-import com.baomidou.mybatisplus.annotation.TableName;
+import com.mybatisflex.annotation.Id;
+import com.mybatisflex.annotation.KeyType;
+import com.mybatisflex.annotation.Table;
 import lombok.Data;
 import java.util.Date;
 
 @Data
-@TableName("base_customer")
+@Table("base_customer")
 public class Customer {
-    @TableId(type = IdType.AUTO)
+    @Id(keyType = KeyType.Auto)
     private Long id;
     private String customerName; // 客户名称
     private String contactPhone; // 联系电话

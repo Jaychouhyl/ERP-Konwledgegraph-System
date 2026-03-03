@@ -1,0 +1,8 @@
+com\smartx\finance\FinanceApplication.class
+com\smartx\finance\domain\flow\CashFlow.class
+com\smartx\finance\mapper\CashFlowMapper.class
+com\smartx\finance\domain\entity\CashFlow.class
+com\smartx\finance\controller\FinanceFlowController.class
+com\smartx\finance\domain\entity\table\CashFlowTableDef.class
+com\smartx\finance\service\CashFlowService.class
+com\smartx\finance\application\FinanceEventListener.class

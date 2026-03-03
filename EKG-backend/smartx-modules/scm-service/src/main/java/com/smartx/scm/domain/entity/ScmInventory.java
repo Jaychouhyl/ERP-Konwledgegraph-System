@@ -1,15 +1,15 @@
 package com.smartx.scm.domain.entity;
 
-import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableId;
-import com.baomidou.mybatisplus.annotation.TableName;
+import com.mybatisflex.annotation.Id;
+import com.mybatisflex.annotation.KeyType;
+import com.mybatisflex.annotation.Table;
 import lombok.Data;
 import java.util.Date;
 
 @Data
-@TableName("scm_inventory")
+@Table("scm_inventory")
 public class ScmInventory {
-    @TableId(type = IdType.AUTO)
+    @Id(keyType = KeyType.Auto)
     private Long id;
     
     private Long materialId;      // 关联物料ID

@@ -1,16 +1,16 @@
 package com.smartx.sales.domain.entity;
 
-import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableId;
-import com.baomidou.mybatisplus.annotation.TableName;
+import com.mybatisflex.annotation.Id;
+import com.mybatisflex.annotation.KeyType;
+import com.mybatisflex.annotation.Table;
 import lombok.Data;
 import java.math.BigDecimal;
 import java.util.Date;
 
 @Data
-@TableName("sls_sales_order")
+@Table("sls_sales_order")
 public class SalesOrder {
-    @TableId(type = IdType.AUTO)
+    @Id(keyType = KeyType.Auto)
     private Long id;
     
     private String orderNo;       // 销售单号

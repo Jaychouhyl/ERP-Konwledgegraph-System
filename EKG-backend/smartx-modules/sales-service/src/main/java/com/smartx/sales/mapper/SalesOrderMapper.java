@@ -1,6 +1,6 @@
 package com.smartx.sales.mapper;
 
-import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import com.mybatisflex.core.BaseMapper;
 import com.smartx.sales.domain.entity.SalesOrder;
 import org.apache.ibatis.annotations.Mapper;
 

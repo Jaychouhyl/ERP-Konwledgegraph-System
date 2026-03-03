@@ -1,6 +1,6 @@
 package com.smartx.auth.controller;
 
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.mybatisflex.core.query.QueryWrapper;
 import com.smartx.auth.domain.entity.User;
 import com.smartx.auth.mapper.UserMapper;
 import io.jsonwebtoken.Jwts;
@@ -12,6 +12,8 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import com.smartx.common.core.domain.Result;
+
+import static com.smartx.auth.domain.entity.table.UserTableDef.USER;
 
 @RestController
 @RequestMapping("/auth")
@@ -28,8 +30,11 @@ public class LoginController {
                            @RequestParam("password") String password) {
 
         // 1. 去数据库查用户
-        User user = userMapper.selectOne(
-                new LambdaQueryWrapper<User>().eq(User::getUsername, username)
+        User user = userMapper.selectOneByQuery(
+                QueryWrapper.create()
+                        .select()
+                        .from(USER)
+                        .where(USER.USERNAME.eq(username))
         );
 
         // 2. 校验账号密码

@@ -1,15 +1,15 @@
 package com.smartx.scm.domain.entity;
 
-import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableId;
-import com.baomidou.mybatisplus.annotation.TableName;
+import com.mybatisflex.annotation.Id;
+import com.mybatisflex.annotation.KeyType;
+import com.mybatisflex.annotation.Table;
 import lombok.Data;
 import java.math.BigDecimal;
 
 @Data
-@TableName("scm_purchase_detail")
+@Table("scm_purchase_detail")
 public class PurchaseOrderDetail {
-    @TableId(type = IdType.AUTO)
+    @Id(keyType = KeyType.Auto)
     private Long id;
     
     private Long purchaseOrderId; // 关联采购单ID

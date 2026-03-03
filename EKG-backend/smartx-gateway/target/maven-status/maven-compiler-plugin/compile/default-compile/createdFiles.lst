@@ -1,0 +1,5 @@
+com\smartx\gateway\GatewayConfiguration.class
+com\smartx\gateway\config\SentinelBlockHandlerConfig$1.class
+com\smartx\gateway\config\SentinelBlockHandlerConfig.class
+com\smartx\gateway\filter\AuthGlobalFilter.class
+com\smartx\gateway\GatewayApplication.class

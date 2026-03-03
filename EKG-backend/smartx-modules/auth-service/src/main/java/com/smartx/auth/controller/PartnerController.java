@@ -47,7 +47,7 @@ public class PartnerController {
 
     @PutMapping("/customer/update")
     public Result<Void> updateCustomer(@RequestBody Customer customer) {
-        customerMapper.updateById(customer);
+        customerMapper.update(customer);
         return Result.success("修改客户资料成功！", null);
     }
 
@@ -57,7 +57,7 @@ public class PartnerController {
         Customer c = new Customer();
         c.setId(id);
         c.setIsDeleted(1);
-        customerMapper.updateById(c);
+        customerMapper.update(c);
         return Result.success("客户已被作废屏蔽！", null);
     }
 
@@ -71,7 +71,7 @@ public class PartnerController {
 
     @PutMapping("/supplier/update")
     public Result<Void> updateSupplier(@RequestBody Supplier supplier) {
-        supplierMapper.updateById(supplier);
+        supplierMapper.update(supplier);
         return Result.success("修改供应商资料成功！", null);
     }
 
@@ -80,7 +80,7 @@ public class PartnerController {
         Supplier s = new Supplier();
         s.setId(id);
         s.setIsDeleted(1);
-        supplierMapper.updateById(s);
+        supplierMapper.update(s);
         return Result.success("供应商已被作废屏蔽！", null);
     }
 }
