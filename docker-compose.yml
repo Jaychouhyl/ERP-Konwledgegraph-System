@@ -103,9 +103,13 @@ services:
       - NAMESRV_ADDR=rmqnamesrv:9876
       - JAVA_OPT_EXT=-Xms256m -Xmx256m -Xmn128m
       - TZ=Asia/Shanghai
-    command: sh mqbroker -n rmqnamesrv:9876 autoCreateTopicEnable=true
+    # 1：启动命令加上 -c 强制指定配置文件
+    command: sh mqbroker -n rmqnamesrv:9876 -c /opt/rocketmq-4.9.4/conf/broker.conf autoCreateTopicEnable=true
     depends_on:
       - rmqnamesrv
+    # 2：把写的配置文件挂载进去
+    volumes:
+      - ./rocketmq/broker.conf:/opt/rocketmq-4.9.4/conf/broker.conf
 
   # 8. RocketMQ 控制台 (可视化面板)
   rmqdashboard:
@@ -113,8 +117,9 @@ services:
     container_name: smartx-rmqdashboard
     restart: always
     ports:
-      - "8081:8080"                         # 宿主机用 8081 访问
+      - "9999:8080"
     environment:
+      - server.port=8080
       - JAVA_OPTS=-Drocketmq.namesrv.addr=rmqnamesrv:9876 -Dcom.rocketmq.sendMessageWithVIPChannel=false
       - TZ=Asia/Shanghai
     depends_on:
