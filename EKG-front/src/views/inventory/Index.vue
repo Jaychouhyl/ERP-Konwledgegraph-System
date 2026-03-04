@@ -20,8 +20,8 @@
                 <span class="label">物料类型：</span>
                 <select v-model="searchQuery.type" class="vben-input select" @change="handleSearch">
                     <option value="">全部类型</option>
-                    <option value="RAW">原料 (Raw Material)</option>
-                    <option value="FINISHED">成品 (Finished Good)</option>
+                    <option value="RAW">原料库</option>
+                    <option value="FINISHED">成品库</option>
                 </select>
             </div>
             <div class="search-item">
@@ -29,7 +29,7 @@
                 <select v-model="searchQuery.stockStatus" class="vben-input select" @change="handleSearch">
                     <option value="">全部</option>
                     <option value="NORMAL">库存健康</option>
-                    <option value="WARNING">低于安全库存 (预警)</option>
+                    <option value="WARNING">低于安全库存 (缺货)</option>
                 </select>
             </div>
             <div class="search-actions">
@@ -44,13 +44,13 @@
 
         <div class="vben-card table-wrapper">
             <div class="table-toolbar">
-                <div class="toolbar-title">库存总览与批次溯源 (Batch Traceability)</div>
+                <div class="toolbar-title">库存总览与批次溯源</div>
                 <div class="toolbar-actions">
-                    <button class="vben-btn default" @click="handleManualCheck">
-                        <Icon icon="mdi:barcode-scan" /> 手工盘点
+                    <button class="vben-btn default" @click="showCheckModal = true">
+                        <Icon icon="mdi:clipboard-check-outline" /> 库存盘点
                     </button>
-                    <button class="vben-btn primary" @click="handleExport">
-                        <Icon icon="mdi:export" /> 导出报表
+                    <button class="vben-btn primary" @click="handleExportExcel">
+                        <Icon icon="mdi:microsoft-excel" /> 导出报表
                     </button>
                 </div>
             </div>
@@ -84,7 +84,11 @@
                                     {{ item.type === 'RAW' ? '原料' : '成品' }}
                                 </span>
                             </td>
-                            <td>{{ item.warehouse }}</td>
+                            <td>
+                                <span class="warehouse-link" @click="openWarehouseModal(item.warehouse)">
+                                    <Icon icon="mdi:store-24-hour" /> {{ item.warehouse }}
+                                </span>
+                            </td>
                             <td class="font-mono font-bold"
                                 :class="{ 'text-danger': item.currentStock < item.safetyStock }">
                                 {{ item.currentStock.toLocaleString() }}
@@ -117,8 +121,8 @@
                                     <table class="vben-sub-table">
                                         <thead>
                                             <tr>
-                                                <th>批次流水号 (Batch No.)</th>
-                                                <th>关联采购单 (PO)</th>
+                                                <th>批次流水号</th>
+                                                <th>关联采购单/工单</th>
                                                 <th>溯源供应商</th>
                                                 <th>该批次当前余量</th>
                                                 <th>入库时间</th>
@@ -134,7 +138,8 @@
                                                 <td class="font-mono font-bold">{{ batch.qty.toLocaleString() }}</td>
                                                 <td class="text-gray">{{ batch.inDate }}</td>
                                                 <td>
-                                                    <span class="link warning" @click="handleBatchQC(batch)">质量抽检</span>
+                                                    <span class="link warning"
+                                                        @click="openQCModal(batch, item.name)">质量抽检</span>
                                                 </td>
                                             </tr>
                                             <tr v-if="!item.batches || item.batches.length === 0">
@@ -160,26 +165,134 @@
                     <button class="page-btn" :disabled="currentPage === 1"
                         @click="changePage(currentPage - 1)">上一页</button>
                     <div class="page-numbers">
-                        <span class="page-num active">{{ currentPage }}</span>
-                        <span class="page-num-divider">/</span>
-                        <span class="page-num">{{ totalPages }}</span>
+                        <span class="page-num active">{{ currentPage }}</span><span
+                            class="page-num-divider">/</span><span class="page-num">{{ totalPages }}</span>
                     </div>
                     <button class="page-btn" :disabled="currentPage === totalPages"
                         @click="changePage(currentPage + 1)">下一页</button>
                 </div>
             </div>
         </div>
+
+        <transition name="modal-fade">
+            <div class="modal-overlay" v-if="showWarehouseModal" @click.self="showWarehouseModal = false">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h3>
+                            <Icon icon="mdi:store-24-hour" /> 仓库静态看板：{{ currentWarehouse }}
+                        </h3>
+                        <Icon icon="mdi:close" class="modal-close" @click="showWarehouseModal = false" />
+                    </div>
+                    <div class="modal-body">
+                        <div class="wh-summary">
+                            <div class="wh-stat-item">
+                                <div class="wh-stat-title">仓库负责人</div>
+                                <div class="wh-stat-val text-blue">李建国</div>
+                            </div>
+                            <div class="wh-stat-item">
+                                <div class="wh-stat-title">安全等级</div>
+                                <div class="wh-stat-val text-success">A 级 (正常)</div>
+                            </div>
+                            <div class="wh-stat-item">
+                                <div class="wh-stat-title">当前物料种类</div>
+                                <div class="wh-stat-val font-mono">{{ currentWarehouseItems.length }} 种</div>
+                            </div>
+                        </div>
+                        <table class="vben-sub-table mt-4">
+                            <thead>
+                                <tr>
+                                    <th>存放物料</th>
+                                    <th>类型</th>
+                                    <th>总数量</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr v-for="wItem in currentWarehouseItems" :key="wItem.id">
+                                    <td>{{ wItem.name }}</td>
+                                    <td>{{ wItem.type === 'RAW' ? '原料' : '成品' }}</td>
+                                    <td class="font-mono font-bold">{{ wItem.currentStock.toLocaleString() }}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </transition>
+
+        <transition name="modal-fade">
+            <div class="modal-overlay" v-if="showQCModal" @click.self="showQCModal = false">
+                <div class="modal-content qc-modal">
+                    <div class="modal-header bg-warning">
+                        <h3>⚠️ 批次质量异常上报</h3>
+                        <Icon icon="mdi:close" class="modal-close" @click="showQCModal = false" />
+                    </div>
+                    <div class="modal-body">
+                        <div class="qc-alert-box">
+                            <Icon icon="mdi:alert" class="qc-alert-icon" />
+                            <div class="qc-alert-text">
+                                系统已自动向企业微信/钉钉推送质检工单！<br />
+                                抽检物料：<b>{{ currentQCItem?.name }}</b><br />
+                                受检批次：<span class="font-mono">{{ currentQCItem?.batch.batchNo }}</span>
+                            </div>
+                        </div>
+
+                        <div class="form-section-title mt-4">总仓管员/品控中心联系方式</div>
+                        <div class="contact-card">
+                            <div class="contact-avatar">国</div>
+                            <div class="contact-info">
+                                <div class="contact-name">王建国 <span class="contact-title">供应链品控总监</span></div>
+                                <div class="contact-detail">
+                                    <Icon icon="mdi:phone" /> 紧急专线：139-8888-9999
+                                </div>
+                                <div class="contact-detail">
+                                    <Icon icon="mdi:email" /> 邮箱：wangjg@smartx.com
+                                </div>
+                            </div>
+                            <button class="vben-btn warning"
+                                @click="showQCModal = false; showMessage('已发送紧急加急提醒！', 'success')">一键催办</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </transition>
+
+        <transition name="modal-fade">
+            <div class="modal-overlay" v-if="showCheckModal" @click.self="showCheckModal = false">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h3>新建库存盘点任务</h3>
+                        <Icon icon="mdi:close" class="modal-close" @click="showCheckModal = false" />
+                    </div>
+                    <div class="modal-body">
+                        <p style="color: var(--text-color-secondary); font-size: 14px; line-height: 1.6;">
+                            <b>什么是盘点？</b><br />
+                            为了防止“账物不符”（电脑账面库存与仓库真实货物数量不一致），需要定期生成盘点任务。仓管员会拿着移动扫码枪去货架核对真实数量，系统将自动生成盘盈/盘亏差异单。
+                        </p>
+                        <div class="form-item mt-4">
+                            <label>选择盘点仓库</label>
+                            <select class="vben-input select" style="width: 100%">
+                                <option>A区-精密电子仓</option>
+                                <option>B区-恒温光电仓</option>
+                                <option>F区-成品出货仓</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="vben-btn default" @click="showCheckModal = false">取消</button>
+                        <button class="vben-btn primary"
+                            @click="showCheckModal = false; showMessage('盘点任务已下发至仓管员手持终端！', 'success')">下发任务</button>
+                    </div>
+                </div>
+            </div>
+        </transition>
     </div>
 </template>
 
 <script setup>
 import { ref, computed } from 'vue'
 import { Icon } from '@iconify/vue'
-import { useRouter } from 'vue-router'
 
-const router = useRouter()
-
-// ================= 0. 全局 Message =================
+// ================= 全局 Message =================
 const messages = ref([])
 let msgId = 0
 const showMessage = (text, type = 'success') => {
@@ -192,10 +305,9 @@ const showMessage = (text, type = 'success') => {
     setTimeout(() => { messages.value = messages.value.filter(m => m.id !== id) }, 3000)
 }
 
-// ================= 1. 数据模拟 (精妙的嵌套数据结构) =================
+// ================= 数据模拟 (嵌套结构) =================
 const searchQuery = ref({ keyword: '', type: '', stockStatus: '' })
 
-// 包含批次数组的复杂实体
 const dataList = ref([
     {
         id: 1, sku: 'SKU-RAW-8G3', name: '骁龙 8 Gen 3 处理器', type: 'RAW', warehouse: 'A区-精密电子仓',
@@ -207,7 +319,7 @@ const dataList = ref([
     },
     {
         id: 2, sku: 'SKU-RAW-IMX989', name: '索尼 IMX989 主摄', type: 'RAW', warehouse: 'B区-恒温光电仓',
-        currentStock: 800, safetyStock: 1500, // <--- 故意设置缺货状态
+        currentStock: 800, safetyStock: 1500, // 缺货
         batches: [
             { batchNo: 'BATCH-0225-C1', poNumber: 'PO-20260225-088', supplier: '立讯精密', qty: 800, inDate: '2026-02-28 10:00' }
         ]
@@ -216,8 +328,8 @@ const dataList = ref([
         id: 3, sku: 'SKU-FIN-S26PRO', name: 'SmartX 2026 Pro 手机', type: 'FINISHED', warehouse: 'F区-成品出货仓',
         currentStock: 1200, safetyStock: 500,
         batches: [
-            { batchNo: 'MFG-20260302-01', poNumber: '内部生产工单-001', supplier: '自产装配线', qty: 1000, inDate: '2026-03-02 18:00' },
-            { batchNo: 'MFG-20260220-05', poNumber: '内部生产工单-002', supplier: '自产装配线', qty: 200, inDate: '2026-02-20 17:30' }
+            { batchNo: 'MFG-20260302-01', poNumber: '生产工单-001', supplier: '自产装配线', qty: 1000, inDate: '2026-03-02 18:00' },
+            { batchNo: 'MFG-20260220-05', poNumber: '生产工单-002', supplier: '自产装配线', qty: 200, inDate: '2026-02-20 17:30' }
         ]
     },
     {
@@ -229,7 +341,7 @@ const dataList = ref([
     },
     {
         id: 5, sku: 'SKU-RAW-BAT5K', name: '高密度硅负极电池', type: 'RAW', warehouse: 'C区-防爆危化仓',
-        currentStock: 150, safetyStock: 1000, // <--- 缺货状态
+        currentStock: 150, safetyStock: 1000, // 缺货
         batches: [
             { batchNo: 'BATCH-0120-E1', poNumber: 'PO-20260120-009', supplier: '宁德时代', qty: 150, inDate: '2026-01-25 15:45' }
         ]
@@ -238,16 +350,12 @@ const dataList = ref([
 
 const filteredList = computed(() => {
     return dataList.value.filter(item => {
-        const matchKeyword = !searchQuery.value.keyword ||
-            item.sku.includes(searchQuery.value.keyword) ||
-            item.name.includes(searchQuery.value.keyword)
+        const matchKey = !searchQuery.value.keyword || item.sku.includes(searchQuery.value.keyword) || item.name.includes(searchQuery.value.keyword)
         const matchType = !searchQuery.value.type || item.type === searchQuery.value.type
-
         let matchStock = true
         if (searchQuery.value.stockStatus === 'NORMAL') matchStock = item.currentStock >= item.safetyStock
         if (searchQuery.value.stockStatus === 'WARNING') matchStock = item.currentStock < item.safetyStock
-
-        return matchKeyword && matchType && matchStock
+        return matchKey && matchType && matchStock
     })
 })
 
@@ -262,39 +370,61 @@ const totalPages = computed(() => Math.max(1, Math.ceil(totalItems.value / pageS
 const paginatedList = computed(() => filteredList.value.slice((currentPage.value - 1) * pageSize.value, currentPage.value * pageSize.value))
 const changePage = (page) => { if (page >= 1 && page <= totalPages.value) currentPage.value = page }
 
-
-// ================= 2. 主子表展开核心逻辑 =================
+// ================= 主子表展开 =================
 const expandedKeys = ref([])
-
 const toggleExpand = (id) => {
-    const index = expandedKeys.value.indexOf(id)
-    if (index > -1) {
-        expandedKeys.value.splice(index, 1) // 收起
-    } else {
-        expandedKeys.value.push(id) // 展开
-    }
+    const idx = expandedKeys.value.indexOf(id)
+    if (idx > -1) expandedKeys.value.splice(idx, 1)
+    else expandedKeys.value.push(id)
 }
 
-// ================= 3. 业务操作 =================
-const navToPurchase = (poNumber) => {
-    showMessage(`正在为您跳转至采购单：${poNumber} 的详细档案...`, 'info')
-    // 实际开发中可以通过 router.push 携带参数跳回采购页
-    setTimeout(() => {
-        router.push({ path: '/purchase', query: { po: poNumber } })
-    }, 1000)
+// ================= 新增：真实生成并下载 Excel (CSV) =================
+const handleExportExcel = () => {
+    // 1. 构建带有 BOM 头（防止中文乱码）的 CSV 字符串
+    let csvContent = "\uFEFF物料编码(SKU),物料名称,分类,所在仓库,当前库存量,安全库存线\n"
+
+    // 2. 遍历数据拼装
+    filteredList.value.forEach(item => {
+        const typeStr = item.type === 'RAW' ? '原料' : '成品'
+        const row = `${item.sku},${item.name},${typeStr},${item.warehouse},${item.currentStock},${item.safetyStock}`
+        csvContent += row + "\n"
+    })
+
+    // 3. 利用 HTML5 Blob 和 a 标签触发真实下载
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.setAttribute('href', url)
+    link.setAttribute('download', `SmartX_ERP_库存报表_${new Date().getTime()}.csv`)
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+
+    showMessage('报表生成成功，开始下载！', 'success')
 }
 
-const handleManualCheck = () => {
-    showMessage('盘点机接口已激活，等待扫码枪数据接入...', 'warning')
+// ================= 新增：各种弹窗逻辑 =================
+const showCheckModal = ref(false) // 盘点弹窗
+
+const showWarehouseModal = ref(false) // 仓库弹窗
+const currentWarehouse = ref('')
+const currentWarehouseItems = computed(() => dataList.value.filter(i => i.warehouse === currentWarehouse.value))
+const openWarehouseModal = (whName) => {
+    currentWarehouse.value = whName
+    showWarehouseModal.value = true
 }
 
-const handleExport = () => {
-    showMessage('正在生成库存与批次溯源 Excel 报表...', 'success')
+const showQCModal = ref(false) // 质检弹窗
+const currentQCItem = ref(null)
+const openQCModal = (batch, materialName) => {
+    currentQCItem.value = { batch, name: materialName }
+    // 第一步：按你的要求，发出信息给员工
+    showMessage('已通过系统自动给检测员发送待检任务卡片！', 'success')
+    // 第二步：延迟一点点弹出总负责人的联系方式
+    setTimeout(() => { showQCModal.value = true }, 600)
 }
 
-const handleBatchQC = (batch) => {
-    showMessage(`已向质检部发送指令，对批次【${batch.batchNo}】进行抽检排查。`, 'success')
-}
+const navToPurchase = (po) => { showMessage(`跨模块跳转：准备载入采购单 ${po}`, 'info') }
 </script>
 
 <style scoped>
@@ -434,7 +564,7 @@ const handleBatchQC = (batch) => {
     flex-shrink: 0;
 }
 
-/* 按钮通用 */
+/* ================= 修复：按钮区域排版 ================= */
 .vben-btn {
     display: flex;
     align-items: center;
@@ -447,6 +577,8 @@ const handleBatchQC = (batch) => {
     transition: all 0.2s;
     height: 34px;
     box-sizing: border-box;
+    white-space: nowrap;
+    flex-shrink: 0;
 }
 
 .vben-btn.default {
@@ -469,6 +601,15 @@ const handleBatchQC = (batch) => {
     opacity: 0.85;
 }
 
+.vben-btn.warning {
+    background: #faad14;
+    color: #fff;
+}
+
+.vben-btn.warning:hover {
+    opacity: 0.85;
+}
+
 .vben-btn:disabled {
     opacity: 0.5;
     cursor: not-allowed;
@@ -488,6 +629,14 @@ const handleBatchQC = (batch) => {
     color: var(--text-color);
 }
 
+.toolbar-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: nowrap;
+}
+
+/* 确保不换行 */
 .table-container {
     overflow-x: auto;
 }
@@ -525,7 +674,6 @@ const handleBatchQC = (batch) => {
 /* 主表特有样式 */
 .main-row.is-expanded td {
     border-bottom-color: transparent;
-    /* 展开时隐藏主行下边框使之连贯 */
 }
 
 .expand-cell {
@@ -562,6 +710,29 @@ const handleBatchQC = (batch) => {
 
 .text-danger {
     color: #ff4d4f;
+}
+
+.text-success {
+    color: #52c41a;
+}
+
+/* 修复：仓库按钮链接 */
+.warehouse-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    color: var(--sidebar-bg-active);
+    background: rgba(22, 119, 255, 0.08);
+    padding: 4px 10px;
+    border-radius: 14px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.warehouse-link:hover {
+    background: rgba(22, 119, 255, 0.15);
+    font-weight: bold;
 }
 
 /* 分类标签 */
@@ -635,7 +806,7 @@ const handleBatchQC = (batch) => {
     }
 }
 
-/* ================= 批次溯源嵌套子表 ================= */
+/* 批次溯源嵌套子表 */
 .sub-row {
     background-color: var(--layout-bg);
 }
@@ -650,7 +821,6 @@ const handleBatchQC = (batch) => {
 
 .sub-table-wrapper {
     padding: 16px 24px 24px 64px;
-    /* 故意左侧留白，产生缩进层级感 */
     border-bottom: 1px solid var(--border-color);
 }
 
@@ -658,7 +828,7 @@ const handleBatchQC = (batch) => {
     display: flex;
     align-items: center;
     gap: 6px;
-    color: var(--sidebar-bg-active);
+    color: var(--text-color);
     font-weight: bold;
     font-size: 14px;
     margin-bottom: 12px;
@@ -666,6 +836,7 @@ const handleBatchQC = (batch) => {
 
 .sub-icon {
     font-size: 18px;
+    color: var(--sidebar-bg-active);
 }
 
 .vben-sub-table {
@@ -780,5 +951,237 @@ const handleBatchQC = (batch) => {
 .page-num.active {
     color: var(--sidebar-bg-active);
     font-weight: bold;
+}
+
+/* ================= 弹窗样式大全 ================= */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(3px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 999;
+}
+
+.modal-content {
+    width: 500px;
+    background: var(--content-bg);
+    border-radius: 8px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+    border: 1px solid var(--border-color);
+    overflow: hidden;
+}
+
+.modal-header {
+    padding: 16px 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--border-color);
+    background: var(--header-bg);
+}
+
+.modal-header h3 {
+    margin: 0;
+    font-size: 16px;
+    color: var(--text-color);
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.modal-close {
+    font-size: 20px;
+    color: var(--text-color-secondary);
+    cursor: pointer;
+}
+
+.modal-body {
+    padding: 24px;
+    color: var(--text-color);
+}
+
+.modal-footer {
+    padding: 16px 24px;
+    border-top: 1px solid var(--border-color);
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    background: var(--header-bg);
+}
+
+/* 仓库弹窗专属 */
+.wh-summary {
+    display: flex;
+    justify-content: space-between;
+    background: var(--layout-bg);
+    padding: 16px;
+    border-radius: 6px;
+    border: 1px solid var(--border-color);
+}
+
+.wh-stat-item {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.wh-stat-title {
+    font-size: 12px;
+    color: var(--text-color-secondary);
+}
+
+.wh-stat-val {
+    font-size: 15px;
+    font-weight: bold;
+}
+
+.mt-4 {
+    margin-top: 16px;
+}
+
+/* 质检弹窗专属 */
+.qc-modal .bg-warning {
+    background-color: #fffbe6;
+    border-bottom-color: #ffe58f;
+}
+
+.dark-theme .qc-modal .bg-warning {
+    background-color: rgba(250, 173, 20, 0.1);
+    border-bottom-color: rgba(250, 173, 20, 0.3);
+}
+
+.qc-modal h3 {
+    color: #faad14;
+}
+
+.qc-alert-box {
+    background: rgba(250, 173, 20, 0.05);
+    border: 1px solid #ffe58f;
+    padding: 16px;
+    border-radius: 6px;
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+}
+
+.dark-theme .qc-alert-box {
+    border-color: rgba(250, 173, 20, 0.3);
+}
+
+.qc-alert-icon {
+    color: #faad14;
+    font-size: 24px;
+    flex-shrink: 0;
+    margin-top: 2px;
+}
+
+.qc-alert-text {
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+.form-section-title {
+    font-size: 13px;
+    font-weight: bold;
+    color: var(--text-color-secondary);
+    border-left: 3px solid #faad14;
+    padding-left: 8px;
+    margin-bottom: 12px;
+}
+
+.contact-card {
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    padding: 16px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    background: var(--layout-bg);
+}
+
+.contact-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: #1677ff;
+    color: #fff;
+    font-size: 20px;
+    font-weight: bold;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.contact-info {
+    flex: 1;
+}
+
+.contact-name {
+    font-size: 16px;
+    font-weight: bold;
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.contact-title {
+    font-size: 12px;
+    font-weight: normal;
+    background: rgba(250, 173, 20, 0.2);
+    color: #faad14;
+    padding: 2px 6px;
+    border-radius: 4px;
+    border: 1px solid rgba(250, 173, 20, 0.5);
+}
+
+.contact-detail {
+    font-size: 13px;
+    color: var(--text-color-secondary);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 4px;
+}
+
+/* 盘点弹窗专属 */
+.form-item {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.form-item label {
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.vben-input {
+    padding: 8px 12px;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    background: var(--content-bg);
+    color: var(--text-color);
+    font-size: 14px;
+    outline: none;
+}
+
+.modal-fade-enter-active,
+.modal-fade-leave-active {
+    transition: all 0.3s cubic-bezier(0.2, 0, 0, 1);
+}
+
+.modal-fade-enter-from,
+.modal-fade-leave-to {
+    opacity: 0;
+    transform: scale(0.95);
 }
 </style>
