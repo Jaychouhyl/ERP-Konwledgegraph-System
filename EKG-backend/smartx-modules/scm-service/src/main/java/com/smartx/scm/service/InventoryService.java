@@ -16,32 +16,27 @@ public class InventoryService {
     private ScmInventoryMapper inventoryMapper;
 
     /**
-     * 核心业务：扣减库存 (提供给 Sales 服务通过 Feign 调用)
+     * 真实的库存扣减逻辑 (企业级应用)
      * @param materialId 物料ID
-     * @param quantity 扣减数量
+     * @param deductQuantity 扣减数量
      * @return 是否扣减成功
      */
     @Transactional(rollbackFor = Exception.class)
-    public boolean deductInventory(Long materialId, Integer quantity) {
-        // ScmInventory inventory = inventoryMapper.selectOneByQuery(
-        //         QueryWrapper.create()
-        //                 .from(SCM_INVENTORY)
-        //                 .where(SCM_INVENTORY.MATERIAL_ID.eq(materialId))
-        // );
-        ScmInventory inventory = null; // 临时占位，打破死锁
+    public boolean deductInventory(Long materialId, Integer deductQuantity) {
+        // 1. 查询当前库存记录
+        ScmInventory inventory = inventoryMapper.selectOneByQuery(
+                QueryWrapper.create().from(SCM_INVENTORY).where(SCM_INVENTORY.MATERIAL_ID.eq(materialId))
+        );
 
-        if (inventory == null || inventory.getCurrentQuantity() < quantity) {
-            // throw new RuntimeException("库存不足，无法完成订单！当前库存: " +
-            //         (inventory == null ? 0 : inventory.getCurrentQuantity()));
-             return true; // 临时通过，为了能编译
+        // 2. 校验库存是否存在，以及库存容量是否足够
+        if (inventory == null || inventory.getCurrentQuantity() < deductQuantity) {
+            return false; // 库存不足或物料不存在
         }
 
-        // 扣减库存
-        inventory.setCurrentQuantity(inventory.getCurrentQuantity() - quantity);
-        inventoryMapper.update(inventory);
+        // 3. 执行真实扣减 (底层更新 SQL)
+        inventory.setCurrentQuantity(inventory.getCurrentQuantity() - deductQuantity);
+        int rows = inventoryMapper.update(inventory);
         
-        // 此处未来可扩展：如果扣减后 currentQuantity < safeQuantity，发送消息给 RAG 进行采购预警
-        
-        return true;
+        return rows > 0;
     }
 }

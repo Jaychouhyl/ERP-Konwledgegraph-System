@@ -10,8 +10,6 @@ public class UserTableDef extends TableDef {
 
     public final QueryColumn ID = new QueryColumn(this, "id");
 
-    public final QueryColumn ROLE_ID = new QueryColumn(this, "role_id");
-
     public final QueryColumn STATUS = new QueryColumn(this, "status");
 
     public final QueryColumn PASSWORD = new QueryColumn(this, "password");
@@ -28,7 +26,7 @@ public class UserTableDef extends TableDef {
     /**
      * 默认字段，不包含逻辑删除或者 large 等字段。
      */
-    public final QueryColumn[] DEFAULT_COLUMNS = new QueryColumn[]{ID, ROLE_ID, STATUS, PASSWORD, REAL_NAME, USERNAME};
+    public final QueryColumn[] DEFAULT_COLUMNS = new QueryColumn[]{ID, STATUS, PASSWORD, REAL_NAME, USERNAME};
 
     public UserTableDef() {
         super("", "sys_user");

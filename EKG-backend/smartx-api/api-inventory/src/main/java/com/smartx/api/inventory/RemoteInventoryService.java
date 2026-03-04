@@ -7,8 +7,10 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 @FeignClient(contextId = "remoteInventoryService", value = "scm-service")
 public interface RemoteInventoryService {
-
-    @PostMapping("/scm/material/internal/deduct")
-    Result<?> deductInventory(@RequestParam("materialId") Long materialId, 
-                              @RequestParam("quantity") Integer quantity);
+    
+    /**
+     * 真实业务：扣减库存
+     */
+    @PostMapping("/scm/inventory/deduct")
+    Result<?> deductInventory(@RequestParam("materialId") Long materialId, @RequestParam("quantity") Integer quantity);
 }

@@ -1,25 +1,30 @@
 package com.smartx.sales.controller;
 
-import com.smartx.sales.service.OrderService;
+import com.smartx.common.core.domain.Result;
+import com.smartx.sales.application.CreateOrderService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.smartx.common.core.domain.Result;
+import java.math.BigDecimal;
 
 @RestController
-@RequestMapping("/sales/order")
+@RequestMapping("/sales")
 public class SalesOrderController {
 
     @Autowired
-    private OrderService orderService;
+    private CreateOrderService createOrderService;
 
-    @GetMapping("/create")
-    public Result<String> testCreateOrder(@RequestParam("productId") Long productId) {
-        // 每次购买 1 台
-        String msg = orderService.createOrderAndDeductInventory(productId, 1);
-        return Result.success(msg);
+    /**
+     * 真实接口：提交销售单
+     */
+    @PostMapping("/create")
+    public Result<?> createOrder(@RequestParam("customerId") Long customerId, 
+                                 @RequestParam("materialId") Long materialId, 
+                                 @RequestParam("qty") Integer qty, 
+                                 @RequestParam("price") BigDecimal price) {
+        return createOrderService.createSalesOrder(customerId, materialId, qty, price);
     }
 }

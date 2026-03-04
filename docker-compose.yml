@@ -119,3 +119,27 @@ services:
       - TZ=Asia/Shanghai
     depends_on:
       - rmqnamesrv
+
+  # Seata 分布式事务协调器 (TC)
+  seata-server:
+    image: seataio/seata-server:1.7.1
+    container_name: smartx-seata
+    restart: always
+    ports:
+      - "8091:8091" # Seata 内部通信端口
+      - "7091:7091" # Seata 控制台端口
+    environment:
+      # 🌟 极其关键：强制指定向 Nacos 注册的 IP 为本机 IP (127.0.0.1)！
+      # 否则它会把 Docker 内部的局域网 IP 注册上去，导致你 IDEA 里的代码连不上它！
+      - SEATA_IP=172.29.32.236
+      - SEATA_PORT=8091
+      # 注册中心配置 (让 Seata 把自己注册到 Nacos)
+      - SEATA_REGISTRY_TYPE=nacos
+      # 注意：如果你是在 Windows 的 Docker Desktop 运行，指向宿主机 Nacos 的最稳妥写法是 host.docker.internal:8848
+      # 如果你的 Nacos 也在同一个 docker-compose 里且服务名叫 nacos，这里也可以写 nacos:8848
+      - SEATA_REGISTRY_NACOS_SERVER_ADDR=host.docker.internal:8848
+      - SEATA_REGISTRY_NACOS_GROUP=SEATA_GROUP
+      - SEATA_REGISTRY_NACOS_APPLICATION=seata-server
+      # 👇 加上这两行，让 Seata 拿着密码去敲 Nacos 的门！
+      - SEATA_REGISTRY_NACOS_USERNAME=nacos
+      - SEATA_REGISTRY_NACOS_PASSWORD=nacos

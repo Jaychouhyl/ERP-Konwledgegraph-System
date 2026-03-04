@@ -1,3 +1,5 @@
-com\smartx\common\security\context\UserContextHolder.class
 com\smartx\common\security\interceptor\UserInfoInterceptor.class
+com\smartx\common\security\context\UserContextHolder.class
+com\smartx\common\security\aspect\PreAuthorizeAspect.class
 com\smartx\common\security\config\SecurityWebMvcConfig.class
+com\smartx\common\security\annotation\RequiresPermissions.class

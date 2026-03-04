@@ -1,3 +1,5 @@
 C:\Users\admin\ERP-Konwledgegraph-System\EKG-backend\smartx-common\common-security\src\main\java\com\smartx\common\security\context\UserContextHolder.java
 C:\Users\admin\ERP-Konwledgegraph-System\EKG-backend\smartx-common\common-security\src\main\java\com\smartx\common\security\config\SecurityWebMvcConfig.java
 C:\Users\admin\ERP-Konwledgegraph-System\EKG-backend\smartx-common\common-security\src\main\java\com\smartx\common\security\interceptor\UserInfoInterceptor.java
+C:\Users\admin\ERP-Konwledgegraph-System\EKG-backend\smartx-common\common-security\src\main\java\com\smartx\common\security\aspect\PreAuthorizeAspect.java
+C:\Users\admin\ERP-Konwledgegraph-System\EKG-backend\smartx-common\common-security\src\main\java\com\smartx\common\security\annotation\RequiresPermissions.java

@@ -14,6 +14,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.util.UUID;
 
+import io.seata.spring.annotation.GlobalTransactional;
+
 @Service
 public class OrderService {
 
@@ -29,7 +31,7 @@ public class OrderService {
     @Autowired
     private RemoteFinanceService remoteFinanceService;
 
-    @Transactional(rollbackFor = Exception.class)
+    @GlobalTransactional(name = "smartx-create-order-tx", rollbackFor = Exception.class)
     public String createOrderAndDeductInventory(Long productId, Integer quantity) {
         
         // 1. 🌟 跨服务调用：去 SCM 扣减库存
