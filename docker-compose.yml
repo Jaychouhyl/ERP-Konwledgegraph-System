@@ -136,7 +136,7 @@ services:
     environment:
       # 🌟 极其关键：强制指定向 Nacos 注册的 IP 为本机 IP (127.0.0.1)！
       # 否则它会把 Docker 内部的局域网 IP 注册上去，导致你 IDEA 里的代码连不上它！
-      - SEATA_IP=172.29.32.236
+      - SEATA_IP=172.29.35.23
       - SEATA_PORT=8091
       # 注册中心配置 (让 Seata 把自己注册到 Nacos)
       - SEATA_REGISTRY_TYPE=nacos

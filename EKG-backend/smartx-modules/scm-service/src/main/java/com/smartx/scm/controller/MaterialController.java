@@ -1,17 +1,15 @@
 package com.smartx.scm.controller;
 
-import com.mybatisflex.core.query.QueryWrapper;
+import com.mybatisflex.core.paginate.Page;
+import com.smartx.common.core.domain.Result;
 import com.smartx.scm.domain.entity.BaseMaterial;
-import com.smartx.scm.mapper.BaseMaterialMapper;
+import com.smartx.scm.service.MaterialService;
 import com.smartx.scm.service.InventoryService;
+import com.smartx.common.redis.service.RedisService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
-import com.smartx.common.core.domain.Result;
-
 import java.util.List;
-
-import com.smartx.common.redis.service.RedisService;
 import java.util.concurrent.TimeUnit;
 
 @RestController
@@ -19,8 +17,8 @@ import java.util.concurrent.TimeUnit;
 public class MaterialController {
 
     @Autowired
-    private BaseMaterialMapper materialMapper;
-    
+    private MaterialService materialService;
+
     @Autowired
     private InventoryService inventoryService;
 
@@ -30,7 +28,7 @@ public class MaterialController {
     // 🌟 缓存 Key 前缀规范
     private static final String MATERIAL_CACHE_KEY = "scm:material:list";
 
-    // 1. 获取所有物料字典（体验飞一般的速度）
+    // 1. 获取所有物料字典（完美保留你的 Redis 缓存逻辑！）
     @GetMapping("/list")
     public Result<List<BaseMaterial>> listMaterials() {
         // 第一步：先去 Redis 翻抽屉
@@ -39,48 +37,64 @@ public class MaterialController {
             return Result.success("【起飞】走 Redis 缓存查询成功！", cachedList);
         }
 
-        // 第二步：抽屉里没有，老老实实去 MySQL 查
-        List<BaseMaterial> list = materialMapper.selectListByQuery(QueryWrapper.create());
+        // 第二步：抽屉里没有，调用 Service 去 MySQL 查
+        List<BaseMaterial> list = materialService.listAll();
 
         // 第三步：查出来之后，放进抽屉里（缓存 2 小时）
         redisService.setCacheObject(MATERIAL_CACHE_KEY, list, 2, TimeUnit.HOURS);
-
         return Result.success("走 MySQL 数据库查询成功，并已存入缓存！", list);
     }
 
-    // 2. 供其他微服务(销售)调用的内部接口：扣减库存
+    // 2. 分页查询物料列表 (前端管理页面极其需要)
+    @GetMapping("/page")
+    public Result<Page<BaseMaterial>> page(
+            @RequestParam(value = "pageNum", defaultValue = "1") int pageNum,
+            @RequestParam(value = "pageSize", defaultValue = "10") int pageSize,
+            @RequestParam(value = "keyword", required = false) String keyword) {
+        return Result.success("分页查询成功", materialService.pageMaterial(pageNum, pageSize, keyword));
+    }
+
+    // 3. 查询单条详情
+    @GetMapping("/{id}")
+    public Result<BaseMaterial> getInfo(@PathVariable("id") Long id) {
+        return Result.success("查询成功", materialService.getById(id));
+    }
+
+    // 4. 新增物料 (保留了你的写操作清空缓存)
+    @PostMapping("/add")
+    public Result<?> addMaterial(@RequestBody BaseMaterial material) {
+        if (materialService.addMaterial(material)) {
+            redisService.deleteObject(MATERIAL_CACHE_KEY);
+            return Result.success("新增物料成功！", null);
+        }
+        return Result.fail("新增物料失败");
+    }
+
+    // 5. 修改物料信息
+    @PutMapping("/update")
+    public Result<?> updateMaterial(@RequestBody BaseMaterial material) {
+        if (materialService.updateMaterial(material)) {
+            redisService.deleteObject(MATERIAL_CACHE_KEY);
+            return Result.success("修改物料成功！", null);
+        }
+        return Result.fail("修改物料失败");
+    }
+
+    // 6. 删除物料
+    @DeleteMapping("/delete/{id}")
+    public Result<?> deleteMaterial(@PathVariable("id") Long id) {
+        if (materialService.deleteMaterial(id)) {
+            redisService.deleteObject(MATERIAL_CACHE_KEY);
+            return Result.success("物料删除成功！", null);
+        }
+        return Result.fail("物料删除失败");
+    }
+
+    // 7. 供其他微服务(销售)调用的内部接口：扣减库存 (保留你的原有接口)
     @PostMapping("/internal/deduct")
-    public Result<Boolean> deductInventory(@RequestParam("materialId") Long materialId, 
+    public Result<Boolean> deductInventory(@RequestParam("materialId") Long materialId,
                                            @RequestParam("quantity") Integer quantity) {
         inventoryService.deductInventory(materialId, quantity);
         return Result.success("扣减库存成功", true);
-    }
-
-    // ========== 新增：物料的 CRUD ==========
-
-    // 1. 新增物料 (@RequestBody 表示接收前端传来的 JSON 数据)
-    @PostMapping("/add")
-    public Result<Void> addMaterial(@RequestBody BaseMaterial material) {
-        materialMapper.insert(material);
-        // 🌟 核心：发生了写操作，立刻删除缓存！下次查询就会重新读 MySQL 并生成新缓存
-        redisService.deleteObject(MATERIAL_CACHE_KEY);
-        return Result.success("新增物料成功！", null);
-    }
-
-    // 2. 修改物料信息
-    @PutMapping("/update")
-    public Result<Void> updateMaterial(@RequestBody BaseMaterial material) {
-        // MyBatis-Plus 会根据传进来的 id 自动去更新对应的非空字段
-        materialMapper.update(material);
-        redisService.deleteObject(MATERIAL_CACHE_KEY);
-        return Result.success("修改物料成功！", null);
-    }
-
-    // 3. 删除物料 (真实场景下建议做逻辑删除，这里为了演示先用物理删除)
-    @DeleteMapping("/delete/{id}")
-    public Result<Void> deleteMaterial(@PathVariable("id") Long id) {
-        materialMapper.deleteById(id);
-        redisService.deleteObject(MATERIAL_CACHE_KEY);
-        return Result.success("物料删除成功！", null);
     }
 }
