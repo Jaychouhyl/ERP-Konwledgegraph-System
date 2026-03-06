@@ -19,4 +19,5 @@ public class CashFlow {
     private String businessType; // 业务类型 (PURCHASE采购付款 / SALES销售收款)
     private Long businessId;     // 关联的业务单据ID (销售单ID等)
     private Date createTime;
+    private Long createBy;//操作人ID
 }

@@ -14,6 +14,8 @@ public class CashFlowTableDef extends TableDef {
 
     public final QueryColumn FLOW_NO = new QueryColumn(this, "flow_no");
 
+    public final QueryColumn CREATE_BY = new QueryColumn(this, "create_by");
+
     public final QueryColumn FLOW_TYPE = new QueryColumn(this, "flow_type");
 
     public final QueryColumn BUSINESS_ID = new QueryColumn(this, "business_id");
@@ -30,7 +32,7 @@ public class CashFlowTableDef extends TableDef {
     /**
      * 默认字段，不包含逻辑删除或者 large 等字段。
      */
-    public final QueryColumn[] DEFAULT_COLUMNS = new QueryColumn[]{ID, AMOUNT, FLOW_NO, FLOW_TYPE, BUSINESS_ID, CREATE_TIME, BUSINESS_TYPE};
+    public final QueryColumn[] DEFAULT_COLUMNS = new QueryColumn[]{ID, AMOUNT, FLOW_NO, CREATE_BY, FLOW_TYPE, BUSINESS_ID, CREATE_TIME, BUSINESS_TYPE};
 
     public CashFlowTableDef() {
         super("", "fin_cash_flow");

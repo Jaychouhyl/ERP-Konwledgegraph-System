@@ -193,7 +193,7 @@ CREATE TABLE `fin_cash_flow` (
                                  `amount` decimal(10,2) NOT NULL COMMENT '金额',
                                  `business_type` varchar(20) NOT NULL COMMENT '业务类型',
                                  `business_id` bigint NOT NULL COMMENT '关联单据ID',
-                                 `create_by` bigint DEFAULT NULL COMMENT '🌟 操作人ID',
+                                 `create_by` bigint DEFAULT NULL COMMENT '操作人ID',
                                  `create_time` datetime DEFAULT CURRENT_TIMESTAMP,
                                  PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='财务资金流水表';
@@ -240,3 +240,5 @@ CREATE TABLE IF NOT EXISTS `undo_log` (
                                           PRIMARY KEY (`id`),
                                           UNIQUE KEY `ux_undo_log` (`xid`,`branch_id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COMMENT='Seata 分布式事务回滚日志表';
+
+
