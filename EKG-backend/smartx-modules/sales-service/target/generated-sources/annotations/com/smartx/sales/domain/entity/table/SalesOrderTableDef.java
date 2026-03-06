@@ -14,6 +14,8 @@ public class SalesOrderTableDef extends TableDef {
 
     public final QueryColumn ORDER_NO = new QueryColumn(this, "order_no");
 
+    public final QueryColumn CREATE_BY = new QueryColumn(this, "create_by");
+
     public final QueryColumn CREATE_TIME = new QueryColumn(this, "create_time");
 
     public final QueryColumn CUSTOMER_ID = new QueryColumn(this, "customer_id");
@@ -28,7 +30,7 @@ public class SalesOrderTableDef extends TableDef {
     /**
      * 默认字段，不包含逻辑删除或者 large 等字段。
      */
-    public final QueryColumn[] DEFAULT_COLUMNS = new QueryColumn[]{ID, STATUS, ORDER_NO, CREATE_TIME, CUSTOMER_ID, TOTAL_AMOUNT};
+    public final QueryColumn[] DEFAULT_COLUMNS = new QueryColumn[]{ID, STATUS, ORDER_NO, CREATE_BY, CREATE_TIME, CUSTOMER_ID, TOTAL_AMOUNT};
 
     public SalesOrderTableDef() {
         super("", "sls_sales_order");

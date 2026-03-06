@@ -18,4 +18,7 @@ public class SalesOrder {
     private BigDecimal totalAmount; // 总金额
     private String status;        // 状态 (CREATED/SHIPPED/COMPLETED)
     private Date createTime;
+    private Long createBy;
+
+
 }
