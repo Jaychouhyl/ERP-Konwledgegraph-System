@@ -62,13 +62,15 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
+// 🌟 1. 引入我们刚写好的真实登录 API
+import { login } from '@/api/auth'
 
 const router = useRouter()
 const username = ref('admin')
 const password = ref('123456')
 const loading = ref(false)
 
-// 🌟 全局持久化主题逻辑
+// 全局持久化主题逻辑
 const isDark = ref(false)
 
 const applyTheme = () => {
@@ -82,7 +84,6 @@ const applyTheme = () => {
 }
 
 onMounted(() => {
-  // 页面加载时读取之前的设置
   isDark.value = localStorage.getItem('smartx-theme') === 'dark'
   applyTheme()
 })
@@ -92,13 +93,33 @@ const toggleTheme = () => {
   applyTheme()
 }
 
-const handleLogin = () => {
-  if (!username.value || !password.value) return ElMessage.warning('请输入凭证')
+// 🌟 2. 替换为真实的登录交互逻辑
+const handleLogin = async () => {
+  if (!username.value || !password.value) {
+    return ElMessage.warning('请输入账号和密码')
+  }
+
   loading.value = true
-  setTimeout(() => {
-    ElMessage.success('登录成功')
+  try {
+    // 调用后台 API
+    const res = await login(username.value, password.value)
+
+    // 从后端返回的数据中提取 token (兼容对象属性或者直接返回字符串的情况)
+    const token = res?.token || res?.accessToken || (typeof res === 'string' ? res : JSON.stringify(res))
+
+    // 存入本地，后续 request.js 的拦截器会自动读取它并附带在请求头
+    localStorage.setItem('ekg_token', token)
+
+    ElMessage.success('登录成功，欢迎使用 SmartX Engine')
+
+    // 跳转首页，路由守卫此时会检查到 token 存在，允许放行
     router.push('/')
-  }, 600)
+  } catch (error) {
+    // 具体错误提示（如密码错误）已经在 request.js 拦截器中统一用 ElMessage 弹出了
+    console.error('登录异常:', error)
+  } finally {
+    loading.value = false
+  }
 }
 </script>
 

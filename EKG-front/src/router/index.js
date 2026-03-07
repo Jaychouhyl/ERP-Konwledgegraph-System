@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import Layout from '@/views/Layout.vue'
+import { ElMessage } from 'element-plus' // 🌟 引入更优雅的提示框
 
 // 💡 施工占位组件（用于暂时没写完的页面，防止白屏报错）
 const Placeholder = {
@@ -84,31 +85,39 @@ const router = createRouter({
   ]
 })
 
-// ================= 核心缺失部分找回：全局路由守卫 (鉴权与角色拦截) =================
+// ================= 🌟 真实全局路由守卫 (鉴权与角色拦截) =================
 router.beforeEach((to, from, next) => {
-  // 1. 获取登录状态 (实际项目中是从 localStorage 或 Pinia 读取 Token)
-  // 这里暂时设为 true 方便我们测试，后续对接后端改为 !!localStorage.getItem('token')
-  const isAuthenticated = true 
+  // 1. 获取真实登录状态 Token (由 Login.vue 登录成功后存入)
+  const token = localStorage.getItem('ekg_token') 
   
-  // 2. 获取当前用户角色 (实际项目中登录后存入缓存)
-  // 你可以手动把这里改成 '普通员工' 来测试拦截效果
+  // 2. 获取当前用户角色 (目前先默认超管，后期可以从 token 解析或用户信息接口获取)
   const userRole = localStorage.getItem('userRole') || '超级管理员' 
 
-  // 3. 拦截未登录访问
-  if (to.path !== '/login' && !isAuthenticated) {
-    alert('请先登录系统！')
-    return next('/login')
+  // 3. 核心鉴权逻辑分支
+  if (to.path === '/login') {
+    // 3.1 如果已经有 Token，还想访问登录页 -> 强制踢回首页
+    if (token) {
+      next('/')
+    } else {
+      next() // 没 Token，正常看登录页
+    }
+  } else {
+    // 3.2 如果访问的是非登录页 (如 /dashboard 等业务页面)
+    if (token) {
+      // 🚀 拦截越权访问（员工不可见人员管理）
+      if (to.meta.requireSuperAdmin && userRole !== '超级管理员') {
+        ElMessage.error('🛑 权限不足：只有【超级管理员】才能访问该页面！')
+        return next(from.path || '/dashboard/analysis')
+      }
+      
+      // 正常放行，允许进入页面
+      next()
+    } else {
+      // 没 Token 且访问受保护页面 -> 强制踢回登录页
+      ElMessage.warning('请先登录系统！')
+      next('/login')
+    }
   }
-
-  // 4. 🚀 拦截越权访问（员工不可见人员管理）
-  // 检查要去往的页面是否在 meta 里写了 requireSuperAdmin
-  if (to.meta.requireSuperAdmin && userRole !== '超级管理员') {
-    alert('🛑 权限不足：只有【超级管理员】才能访问人员管理页面！')
-    return next(from.path || '/dashboard/analysis') // 将非超管员工一脚踢回首页或上一个页面
-  }
-
-  // 5. 正常放行，允许进入页面
-  next()
 })
 
 export default router

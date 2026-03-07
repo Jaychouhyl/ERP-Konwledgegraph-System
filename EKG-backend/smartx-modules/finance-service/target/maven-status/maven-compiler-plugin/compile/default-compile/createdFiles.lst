@@ -1,6 +1,5 @@
 com\smartx\finance\application\FinanceMessageListener.class
 com\smartx\finance\FinanceApplication.class
-com\smartx\finance\domain\flow\CashFlow.class
 com\smartx\finance\mapper\CashFlowMapper.class
 com\smartx\finance\domain\entity\CashFlow.class
 com\smartx\finance\controller\FinanceFlowController.class

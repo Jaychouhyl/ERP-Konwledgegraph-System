@@ -1,10 +1,8 @@
-C:\Users\admin\ERP-Konwledgegraph-System\EKG-backend\smartx-modules\sales-service\src\main\java\com\smartx\sales\application\CreateOrderService.java
 C:\Users\admin\ERP-Konwledgegraph-System\EKG-backend\smartx-modules\sales-service\src\main\java\com\smartx\sales\SalesApplication.java
 C:\Users\admin\ERP-Konwledgegraph-System\EKG-backend\smartx-modules\sales-service\src\main\java\com\smartx\sales\mapper\SalesOrderMapper.java
-C:\Users\admin\ERP-Konwledgegraph-System\EKG-backend\smartx-modules\sales-service\src\main\java\com\smartx\sales\domain\order\SalesOrder.java
 C:\Users\admin\ERP-Konwledgegraph-System\EKG-backend\smartx-modules\sales-service\src\main\java\com\smartx\sales\mapper\SalesOrderDetailMapper.java
-C:\Users\admin\ERP-Konwledgegraph-System\EKG-backend\smartx-modules\sales-service\src\main\java\com\smartx\sales\domain\order\OrderItem.java
 C:\Users\admin\ERP-Konwledgegraph-System\EKG-backend\smartx-modules\sales-service\src\main\java\com\smartx\sales\domain\entity\SalesOrderDetail.java
 C:\Users\admin\ERP-Konwledgegraph-System\EKG-backend\smartx-modules\sales-service\src\main\java\com\smartx\sales\controller\SalesOrderController.java
 C:\Users\admin\ERP-Konwledgegraph-System\EKG-backend\smartx-modules\sales-service\src\main\java\com\smartx\sales\service\OrderService.java
 C:\Users\admin\ERP-Konwledgegraph-System\EKG-backend\smartx-modules\sales-service\src\main\java\com\smartx\sales\domain\entity\SalesOrder.java
+C:\Users\admin\ERP-Konwledgegraph-System\EKG-backend\smartx-modules\sales-service\src\main\java\com\smartx\sales\domain\vo\SalesOrderVO.java

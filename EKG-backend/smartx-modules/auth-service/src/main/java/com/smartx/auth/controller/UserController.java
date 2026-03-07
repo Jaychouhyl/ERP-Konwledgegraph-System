@@ -6,7 +6,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/auth/user") // 注意不要加 /api
+@RequestMapping("/auth/user")
 public class UserController {
 
     @GetMapping("/getName")

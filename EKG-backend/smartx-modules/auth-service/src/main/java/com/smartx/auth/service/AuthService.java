@@ -23,12 +23,13 @@ public class AuthService {
     @Autowired
     private UserMapper userMapper;
 
-    // JWT 秘钥 (真实项目可移至 yml 配置)
+    // JWT 秘钥
     private static final String SECRET_KEY = "SmartX_ERP_Secret_Key_Must_Be_Long_Enough_For_Security";
     // Token 过期时间：24小时
     private static final long EXPIRE_TIME = 1000 * 60 * 60 * 24;
 
-    public String login(String username, String password) {
+    // 🌟 返回值从 String 改为了 Map，同时包容 Token 和 UserInfo
+    public Map<String, Object> login(String username, String password) {
         // 1. 查询数据库里的用户
         User user = userMapper.selectOneByQuery(
                 QueryWrapper.create().where(USER.USERNAME.eq(username))
@@ -42,17 +43,28 @@ public class AuthService {
             throw new RuntimeException("该账号已被停用，请联系管理员！");
         }
 
-        // 3. 签发 JWT Token (把 userId 塞进去，给后面的网关和拦截器用！)
+        // 3. 签发 JWT Token
         Map<String, Object> claims = new HashMap<>();
         claims.put("userId", user.getId());
         claims.put("username", user.getUsername());
+        claims.put("realName", user.getRealName()); // 把 realName 也塞进 Token 里更方便
 
-        return Jwts.builder()
+        String token = Jwts.builder()
                 .setClaims(claims)
                 .setSubject(user.getUsername())
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + EXPIRE_TIME))
                 .signWith(SignatureAlgorithm.HS256, SECRET_KEY)
                 .compact();
+
+        // 4. 🌟 核心安全补丁：把密码清空，绝对不能传给前端！
+        user.setPassword(null);
+
+        // 5. 拼装前端需要的完整结构
+        Map<String, Object> result = new HashMap<>();
+        result.put("token", token);
+        result.put("userInfo", user);
+
+        return result;
     }
 }
