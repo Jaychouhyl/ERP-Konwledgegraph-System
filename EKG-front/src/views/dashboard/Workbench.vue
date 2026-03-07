@@ -3,9 +3,9 @@
     
     <div class="workbench-header card-base">
       <div class="user-info">
-        <div class="admin-avatar">A</div>
+        <div class="admin-avatar">{{ userStore.avatarLetter }}</div>
         <div class="greet">
-          <h2 class="greet-title">早安，Admin，祝你开心每一天！</h2>
+          <h2 class="greet-title">{{ greeting }}，{{ userStore.realName }}，祝你开心每一天！</h2>
           <p class="greet-desc">今日晴，20℃ - 32℃，适合处理积压的审批哦！</p>
         </div>
       </div>
@@ -106,12 +106,23 @@
 </template>
 
 <script setup>
-import { ref, nextTick } from 'vue'
+import { ref, computed, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import { Icon } from '@iconify/vue'
+import { useUserStore } from '@/stores/user'
 
 const router = useRouter()
 const go = (path) => router.push(path)
+const userStore = useUserStore()
+
+const greeting = computed(() => {
+  const hour = new Date().getHours()
+  if (hour < 9) return '早安'
+  if (hour < 12) return '上午好'
+  if (hour < 14) return '中午好'
+  if (hour < 18) return '下午好'
+  return '晚上好'
+})
 
 // ========== 1. 最新动态数据 (优化了头像配色与文字) ========== 
 const dynamics = ref([

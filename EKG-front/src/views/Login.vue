@@ -64,11 +64,13 @@ import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 // 🌟 1. 引入我们刚写好的真实登录 API
 import { login } from '@/api/auth'
+import { useUserStore } from '@/stores/user'
 
 const router = useRouter()
 const username = ref('admin')
 const password = ref('123456')
 const loading = ref(false)
+const userStore = useUserStore()
 
 // 全局持久化主题逻辑
 const isDark = ref(false)
@@ -104,11 +106,8 @@ const handleLogin = async () => {
     // 调用后台 API
     const res = await login(username.value, password.value)
 
-    // 从后端返回的数据中提取 token (兼容对象属性或者直接返回字符串的情况)
-    const token = res?.token || res?.accessToken || (typeof res === 'string' ? res : JSON.stringify(res))
-
-    // 存入本地，后续 request.js 的拦截器会自动读取它并附带在请求头
-    localStorage.setItem('ekg_token', token)
+    // 通过 Pinia store 统一保存 token 和 userInfo
+    userStore.setLoginData(res)
 
     ElMessage.success('登录成功，欢迎使用 SmartX Engine')
 

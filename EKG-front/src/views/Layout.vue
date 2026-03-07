@@ -86,8 +86,8 @@
           </div>
 
           <div class="user-dropdown" @click.stop="toggleUserMenu">
-            <div class="header-text-avatar">A</div>
-            <span class="username">Admin</span>
+            <div class="header-text-avatar">{{ userStore.avatarLetter }}</div>
+            <span class="username">{{ userStore.realName }}</span>
             <Icon icon="mdi:chevron-down" style="font-size: 16px; color: var(--text-color); margin-left: 4px;" />
             <transition name="dropdown">
               <ul v-show="showUserMenu" class="dropdown-menu">
@@ -141,9 +141,11 @@ import { useRouter, useRoute } from 'vue-router'
 import { Icon } from '@iconify/vue'
 // 👇 🌟这里就是我帮您加上的导入，解决退出报错的问题
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { useUserStore } from '@/stores/user'
 
 const router = useRouter()
 const route = useRoute()
+const userStore = useUserStore()
 
 const isMini = ref(false)
 const isHidden = ref(false)
@@ -250,8 +252,7 @@ const handleLogout = () => {
     cancelButtonText: '取消',
     type: 'warning',
   }).then(() => {
-    localStorage.removeItem('ekg_token')
-    localStorage.removeItem('userRole')
+    userStore.logout()
 
     ElMessage.success('已安全退出')
     router.push('/login')
@@ -259,6 +260,7 @@ const handleLogout = () => {
 }
 
 onMounted(() => {
+  userStore.restoreFromStorage()
   document.addEventListener('click', closeAllMenus)
   document.addEventListener('fullscreenchange', () => { isFullscreen.value = !!document.fullscreenElement })
 })

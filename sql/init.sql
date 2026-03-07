@@ -32,6 +32,10 @@ CREATE TABLE `sys_user` (
                             `username` varchar(50) NOT NULL COMMENT '登录账号',
                             `password` varchar(100) NOT NULL COMMENT '密码',
                             `real_name` varchar(50) DEFAULT NULL COMMENT '真实姓名',
+                            `phone` varchar(20) DEFAULT NULL COMMENT '联系电话',
+                            `email` varchar(100) DEFAULT NULL COMMENT '电子邮箱',
+                            `avatar` varchar(255) DEFAULT NULL COMMENT '头像URL(为空时前端用首字母代替)',
+                            `department` varchar(50) DEFAULT NULL COMMENT '所属部门',
                             `status` tinyint(1) DEFAULT '1' COMMENT '状态(1正常 0停用)',
                             `create_time` datetime DEFAULT CURRENT_TIMESTAMP,
                             `update_time` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -84,6 +88,8 @@ CREATE TABLE `base_supplier` (
                                  `contact_person` varchar(50) DEFAULT NULL COMMENT '联系人',
                                  `contact_phone` varchar(20) DEFAULT NULL COMMENT '联系电话',
                                  `risk_level` varchar(20) DEFAULT 'LOW' COMMENT '风险等级(HIGH/MEDIUM/LOW)',
+                                  `address` varchar(200) DEFAULT NULL COMMENT '供应商地址',
+                                  `email` varchar(100) DEFAULT NULL COMMENT '邮箱',
                                  `create_by` bigint DEFAULT NULL COMMENT '🌟 创建人/操作人ID',
                                  `create_time` datetime DEFAULT CURRENT_TIMESTAMP,
                                  `update_time` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -94,6 +100,7 @@ CREATE TABLE `base_supplier` (
 CREATE TABLE `base_customer` (
                                  `id` bigint NOT NULL AUTO_INCREMENT,
                                  `customer_name` varchar(100) NOT NULL COMMENT '客户名称',
+                                  `contact_person` varchar(50) DEFAULT NULL COMMENT '客户联系人',
                                  `contact_phone` varchar(20) DEFAULT NULL COMMENT '联系电话',
                                  `address` varchar(200) DEFAULT NULL COMMENT '收货地址',
                                  `create_by` bigint DEFAULT NULL COMMENT '🌟 创建人/操作人ID',
@@ -201,9 +208,9 @@ CREATE TABLE `fin_cash_flow` (
 -- ==========================================================
 -- 5. 初始化核心数据
 -- ==========================================================
-INSERT INTO `sys_user` (`id`, `username`, `password`, `real_name`, `status`) VALUES
-                                                                                 (1, 'admin', '123456', '超级管理员', 1),
-                                                                                 (2, 'buyer01', '123456', '采购员张三', 1);
+INSERT INTO `sys_user` (`id`, `username`, `password`, `real_name`, `phone`, `email`, `department`, `status`) VALUES
+  (1, 'admin', '123456', '超级管理员', '13800138000', 'admin@smartx.com', '核心开发团队', 1),
+  (2, 'buyer01', '123456', '采购员张三', '13900139001', 'zhangsan@smartx.com', '供应链部', 1);
 
 INSERT INTO `sys_role` (`id`, `role_name`, `role_key`) VALUES
                                                            (1, '超级管理员', 'admin'),

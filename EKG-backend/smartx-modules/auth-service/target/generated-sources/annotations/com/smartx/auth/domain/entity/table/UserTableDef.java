@@ -10,6 +10,12 @@ public class UserTableDef extends TableDef {
 
     public final QueryColumn ID = new QueryColumn(this, "id");
 
+    public final QueryColumn EMAIL = new QueryColumn(this, "email");
+
+    public final QueryColumn PHONE = new QueryColumn(this, "phone");
+
+    public final QueryColumn AVATAR = new QueryColumn(this, "avatar");
+
     public final QueryColumn STATUS = new QueryColumn(this, "status");
 
     public final QueryColumn PASSWORD = new QueryColumn(this, "password");
@@ -17,6 +23,8 @@ public class UserTableDef extends TableDef {
     public final QueryColumn REAL_NAME = new QueryColumn(this, "real_name");
 
     public final QueryColumn USERNAME = new QueryColumn(this, "username");
+
+    public final QueryColumn DEPARTMENT = new QueryColumn(this, "department");
 
     /**
      * 所有字段。
@@ -26,7 +34,7 @@ public class UserTableDef extends TableDef {
     /**
      * 默认字段，不包含逻辑删除或者 large 等字段。
      */
-    public final QueryColumn[] DEFAULT_COLUMNS = new QueryColumn[]{ID, STATUS, PASSWORD, REAL_NAME, USERNAME};
+    public final QueryColumn[] DEFAULT_COLUMNS = new QueryColumn[]{ID, EMAIL, PHONE, AVATAR, STATUS, PASSWORD, REAL_NAME, USERNAME, DEPARTMENT};
 
     public UserTableDef() {
         super("", "sys_user");
