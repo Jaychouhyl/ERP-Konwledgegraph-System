@@ -63,6 +63,11 @@ const router = createRouter({
           name: 'SystemSupplier',
           component: () => import('@/views/system/Supplier.vue')
         },
+        {
+          path: 'system/settings',
+          name: 'SystemSettings',
+          component: () => import('@/views/system/Settings.vue')
+},
 
         // ================= 业务管理模块 =================
         {

@@ -249,3 +249,27 @@ CREATE TABLE IF NOT EXISTS `undo_log` (
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COMMENT='Seata 分布式事务回滚日志表';
 
 
+
+
+-- ========================================
+-- sys_user 字段增强（增量脚本）
+-- ========================================
+
+-- 1. 角色关联：虽然有 sys_user_role 关联表，但为了登录接口快速返回角色名，冗余一个 role_name
+ALTER TABLE `sys_user` ADD COLUMN `role_name` varchar(30) DEFAULT '普通员工' COMMENT '冗余角色名(超级管理员/采购员/...)' AFTER `department`;
+
+-- 2. 性别
+ALTER TABLE `sys_user` ADD COLUMN `gender` tinyint(1) DEFAULT NULL COMMENT '性别(0女 1男)' AFTER `real_name`;
+
+-- 3. 最后登录时间（审计用）
+ALTER TABLE `sys_user` ADD COLUMN `last_login_time` datetime DEFAULT NULL COMMENT '最后登录时间' AFTER `status`;
+
+-- 4. 最后登录IP（审计用）
+ALTER TABLE `sys_user` ADD COLUMN `last_login_ip` varchar(50) DEFAULT NULL COMMENT '最后登录IP' AFTER `last_login_time`;
+
+-- 5. 备注
+ALTER TABLE `sys_user` ADD COLUMN `remark` varchar(500) DEFAULT NULL COMMENT '备注信息' AFTER `last_login_ip`;
+
+-- 更新初始数据中 admin 的角色名
+UPDATE `sys_user` SET `role_name` = '超级管理员' WHERE `id` = 1;
+UPDATE `sys_user` SET `role_name` = '采购员' WHERE `id` = 2;

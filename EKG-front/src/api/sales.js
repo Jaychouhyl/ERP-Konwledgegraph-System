@@ -1,19 +1,11 @@
 import request from '@/utils/request'
 
-// 获取销售订单分页
-export function getSalesOrderPage(params) {
-  return request({
-    url: '/sales/order/page',
-    method: 'get',
-    params: params
-  })
-}
-
-// 创建销售订单
 export function createSalesOrder(data) {
-  return request({
-    url: '/sales/order',
-    method: 'post',
-    data: data
-  })
+  return request({ url: '/sales/order/create', method: 'post', data })
+}
+export function pageSalesOrder(pageNum, pageSize, orderNo, customerId) {
+  return request({ url: '/sales/order/page', method: 'get', params: { pageNum, pageSize, orderNo, customerId } })
+}
+export function getSalesDetail(id) {
+  return request({ url: `/sales/order/detail/${id}`, method: 'get' })
 }

@@ -44,13 +44,20 @@ public class AuthService {
         }
 
         // 3. 签发 JWT Token
-        Map<String, Object> claims = new HashMap<>();
-        claims.put("userId", user.getId());
-        claims.put("username", user.getUsername());
-        claims.put("realName", user.getRealName()); // 把 realName 也塞进 Token 里更方便
+        // 在 AuthService.login() 构建 userInfo 的地方，把以下字段全部带上：
+        Map<String, Object> userInfoMap = new HashMap<>();
+        userInfoMap.put("id", user.getId());
+        userInfoMap.put("username", user.getUsername());
+        userInfoMap.put("realName", user.getRealName());
+        userInfoMap.put("phone", user.getPhone());          // 🆕
+        userInfoMap.put("email", user.getEmail());            // 🆕
+        userInfoMap.put("department", user.getDepartment());  // 🆕
+        userInfoMap.put("avatar", user.getAvatar());          // 🆕
+        userInfoMap.put("roleName", user.getRoleName());      // 🆕
+        userInfoMap.put("status", user.getStatus());
 
         String token = Jwts.builder()
-                .setClaims(claims)
+                .setClaims(userInfoMap)
                 .setSubject(user.getUsername())
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + EXPIRE_TIME))

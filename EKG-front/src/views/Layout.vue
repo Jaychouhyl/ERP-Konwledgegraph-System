@@ -10,21 +10,38 @@
       <div class="sidebar-menu-scroll">
         <ul class="custom-menu">
           <template v-for="group in menuData" :key="group.key">
-            <li class="menu-parent" :class="{ 'is-open': openKeys.includes(group.key) }" @click="toggleMenu(group.key)">
+            <li class="menu-parent" :class="{ 'is-open': openKeys.includes(group.key) }"
+              @click="handleParentClick(group.key)" @mouseenter="handleParentHover(group.key, true)"
+              @mouseleave="handleParentHover(group.key, false)">
               <div class="menu-parent-left">
                 <Icon :icon="group.icon" class="parent-icon" />
                 <span class="parent-title" v-show="!isMini">{{ group.title }}</span>
               </div>
               <Icon icon="mdi:chevron-down" class="arrow-icon" v-show="!isMini" />
+
+              <!-- Mini 模式下的浮层弹出菜单 -->
+              <transition name="popover-fade">
+                <div v-if="isMini && hoverGroupKey === group.key" class="mini-popover"
+                  @mouseenter="handleParentHover(group.key, true)" @mouseleave="handleParentHover(group.key, false)">
+                  <div class="popover-title">{{ group.title.replace(/ \(.+\)/, '') }}</div>
+                  <div class="popover-item" v-for="child in group.children" :key="child.path"
+                    :class="{ active: currentPath.includes(child.path) }" @click.stop="go(child.path)">
+                    <Icon :icon="child.icon" class="popover-icon" />
+                    <span>{{ child.title }}</span>
+                  </div>
+                </div>
+              </transition>
             </li>
-            <div class="menu-children-wrapper"
-              :style="{ maxHeight: openKeys.includes(group.key) || isMini ? '500px' : '0' }">
+
+            <!-- 展开模式下正常显示的子菜单 -->
+            <div v-if="!isMini" class="menu-children-wrapper"
+              :style="{ maxHeight: openKeys.includes(group.key) ? '500px' : '0' }">
               <li class="menu-item" v-for="child in group.children" :key="child.path"
                 :class="{ active: currentPath.includes(child.path) }" @click="go(child.path)" :title="child.title">
                 <div class="menu-icon-wrapper">
                   <Icon :icon="child.icon" class="menu-icon" />
                 </div>
-                <span class="menu-title" v-show="!isMini">{{ child.title }}</span>
+                <span class="menu-title">{{ child.title }}</span>
               </li>
             </div>
           </template>
@@ -55,6 +72,11 @@
         </div>
 
         <div class="header-right">
+          <!-- 🆕 系统设置按钮 -->
+          <div class="action-item" title="系统设置" @click="go('/system/settings')">
+            <Icon icon="mdi:cog-outline" />
+          </div>
+
           <div class="action-item" title="主题切换" @click="toggleTheme">
             <Icon :icon="isDark ? 'mdi:weather-night' : 'mdi:weather-sunny'" />
           </div>
@@ -139,7 +161,6 @@
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { Icon } from '@iconify/vue'
-// 👇 🌟这里就是我帮您加上的导入，解决退出报错的问题
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { useUserStore } from '@/stores/user'
 
@@ -152,6 +173,26 @@ const isHidden = ref(false)
 const toggleMini = () => { isMini.value = !isMini.value; if (isMini.value) isHidden.value = false }
 const toggleHidden = () => { isHidden.value = !isHidden.value }
 const currentPath = computed(() => route.path)
+
+// 🆕 Mini 模式悬停弹出控制
+const hoverGroupKey = ref(null)
+let hoverTimer = null
+
+const handleParentClick = (key) => {
+  if (isMini.value) return // mini 模式不切换展开
+  if (openKeys.value.includes(key)) openKeys.value = openKeys.value.filter(k => k !== key)
+  else openKeys.value.push(key)
+}
+
+const handleParentHover = (key, isEnter) => {
+  if (!isMini.value) return
+  clearTimeout(hoverTimer)
+  if (isEnter) {
+    hoverGroupKey.value = key
+  } else {
+    hoverTimer = setTimeout(() => { hoverGroupKey.value = null }, 150)
+  }
+}
 
 const menuData = ref([
   {
@@ -174,16 +215,13 @@ const menuData = ref([
     children: [
       { path: '/system/user', title: '人员管理', icon: 'mdi:account-cog-outline' },
       { path: '/system/customer', title: '买家管理', icon: 'mdi:account-tie-outline' },
-      { path: '/system/supplier', title: '供应商管理', icon: 'mdi:truck-delivery-outline' }
+      { path: '/system/supplier', title: '供应商管理', icon: 'mdi:truck-delivery-outline' },
+      { path: '/system/settings', title: '系统设置', icon: 'mdi:tune-vertical' }
     ]
   }
 ])
 
 const openKeys = ref(['dashboard', 'business', 'system'])
-const toggleMenu = (key) => {
-  if (openKeys.value.includes(key)) openKeys.value = openKeys.value.filter(k => k !== key)
-  else openKeys.value.push(key)
-}
 
 const currentRouteInfo = computed(() => {
   if (currentPath.value.includes('/profile')) return { title: '个人中心', breadcrumb: ['个人中心'], icon: 'mdi:account-outline' }
@@ -217,7 +255,7 @@ const closeTab = (path, index) => {
 }
 const closeOtherTabs = () => { tabsList.value = tabsList.value.filter(tab => tab.path === currentPath.value) }
 
-// Header 状态与方法 
+// Header 状态与方法
 const isRefreshing = ref(false)
 const isDark = ref(false)
 const isFullscreen = ref(false)
@@ -245,7 +283,6 @@ const toggleUserMenu = () => { showUserMenu.value = !showUserMenu.value; showMsg
 const toggleMsgMenu = () => { showMsgMenu.value = !showMsgMenu.value; showUserMenu.value = false }
 const closeAllMenus = () => { showUserMenu.value = false; showMsgMenu.value = false }
 
-// 👇 退出的核心逻辑
 const handleLogout = () => {
   ElMessageBox.confirm('确定要退出当前系统吗？', '提示', {
     confirmButtonText: '确定退出',
@@ -253,7 +290,6 @@ const handleLogout = () => {
     type: 'warning',
   }).then(() => {
     userStore.logout()
-
     ElMessage.success('已安全退出')
     router.push('/login')
   }).catch(() => { })
@@ -266,11 +302,10 @@ onMounted(() => {
 })
 onUnmounted(() => {
   document.removeEventListener('click', closeAllMenus)
-}) 
+})
 </script>
 
 <style scoped>
-/* 此处保留原本 Layout.vue 完美的所有 CSS 样式 */
 .vben-layout {
   --sidebar-width: 210px;
   --sidebar-width-mini: 64px;
@@ -320,7 +355,7 @@ onUnmounted(() => {
   transition: width 0.3s cubic-bezier(0.2, 0, 0, 1) 0s, border-color 0.3s;
   z-index: 10;
   border-right: 1px solid var(--border-color);
-  overflow: hidden;
+  overflow: visible;
   white-space: nowrap;
 }
 
@@ -357,7 +392,7 @@ onUnmounted(() => {
 .sidebar-menu-scroll {
   flex: 1;
   overflow-y: auto;
-  overflow-x: hidden;
+  overflow-x: visible;
   padding-bottom: 20px;
 }
 
@@ -387,6 +422,7 @@ onUnmounted(() => {
   cursor: pointer;
   transition: all 0.3s;
   color: rgba(255, 255, 255, 0.85);
+  position: relative;
 }
 
 .menu-parent:hover {
@@ -475,17 +511,64 @@ onUnmounted(() => {
   font-size: 20px;
 }
 
-.vben-layout.is-mini .menu-item {
-  padding: 0;
-  justify-content: center;
+/* ================= 🆕 Mini 模式浮层弹出菜单 ================= */
+.mini-popover {
+  position: absolute;
+  left: calc(var(--sidebar-width-mini) - 8px);
+  top: 0;
+  min-width: 160px;
+  background: var(--sidebar-bg);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 6px;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
+  padding: 6px 0;
+  z-index: 999;
+  white-space: nowrap;
 }
 
-.vben-layout.is-mini .menu-icon-wrapper {
-  margin-right: 0;
+.popover-title {
+  padding: 8px 16px 6px;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.45);
+  font-weight: 500;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  margin-bottom: 4px;
 }
 
-.vben-layout.is-mini .menu-icon {
-  font-size: 18px;
+.popover-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  cursor: pointer;
+  color: rgba(255, 255, 255, 0.65);
+  font-size: 13px;
+  transition: all 0.2s;
+}
+
+.popover-item:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.popover-item.active {
+  color: var(--sidebar-bg-active);
+  background: rgba(22, 119, 255, 0.15);
+}
+
+.popover-icon {
+  font-size: 15px;
+}
+
+.popover-fade-enter-active,
+.popover-fade-leave-active {
+  transition: all 0.2s ease;
+}
+
+.popover-fade-enter-from,
+.popover-fade-leave-to {
+  opacity: 0;
+  transform: translateX(-6px);
 }
 
 .sidebar-trigger {
@@ -501,14 +584,15 @@ onUnmounted(() => {
 }
 
 .sidebar-trigger:hover {
-  color: var(--sidebar-text-active);
-  background: rgba(255, 255, 255, 0.05);
+  color: #fff;
+  background-color: rgba(255, 255, 255, 0.05);
 }
 
 .trigger-icon {
-  font-size: 22px;
+  font-size: 18px;
 }
 
+/* ================= 主区域 ================= */
 .layout-main {
   flex: 1;
   display: flex;
@@ -519,24 +603,33 @@ onUnmounted(() => {
 .layout-header {
   height: var(--header-height);
   background: var(--header-bg);
+  border-bottom: 1px solid var(--border-color);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  z-index: 9;
-  padding: 0 16px 0 0;
-  transition: background-color 0.3s, border-color 0.3s;
+  padding: 0 16px;
+  flex-shrink: 0;
+  transition: background-color 0.3s;
+}
+
+.header-left,
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 4px;
 }
 
 .action-item {
+  width: 36px;
+  height: 36px;
   display: flex;
   align-items: center;
   justify-content: center;
-  height: 100%;
-  padding: 0 12px;
+  border-radius: 6px;
   cursor: pointer;
-  font-size: 20px;
+  transition: all 0.2s;
+  font-size: 18px;
   color: var(--text-color);
-  transition: all 0.3s;
   position: relative;
 }
 
@@ -544,51 +637,318 @@ onUnmounted(() => {
   background-color: var(--hover-bg);
 }
 
-.header-left {
+.badge {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  min-width: 16px;
+  height: 16px;
+  background: #ff4d4f;
+  color: #fff;
+  font-size: 10px;
+  font-weight: bold;
+  border-radius: 8px;
   display: flex;
   align-items: center;
-  height: 100%;
+  justify-content: center;
+  padding: 0 4px;
+  line-height: 1;
 }
 
 .breadcrumb {
-  margin-left: 8px;
   display: flex;
   align-items: center;
-  font-size: 14px;
+  gap: 4px;
+  margin-left: 8px;
 }
 
 .bc-wrapper {
   display: flex;
   align-items: center;
+  gap: 4px;
 }
 
 .bc-item {
+  font-size: 14px;
   color: var(--text-color-secondary);
-  transition: color 0.3s;
 }
 
-.bc-item.bc-active {
+.bc-active {
   color: var(--text-color);
   font-weight: 500;
 }
 
 .bc-separator {
-  margin: 0 8px;
-  color: var(--text-color-secondary);
-  opacity: 0.5;
+  color: var(--border-color);
   font-size: 12px;
 }
 
-.header-right {
+/* 下拉菜单 */
+.user-dropdown {
   display: flex;
   align-items: center;
-  height: 100%;
-  gap: 4px;
-  padding-right: 16px;
+  gap: 8px;
+  padding: 0 8px;
+  height: 36px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+  position: relative;
 }
 
+.user-dropdown:hover {
+  background-color: var(--hover-bg);
+}
+
+.header-text-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--sidebar-bg-active);
+  color: #fff;
+  font-size: 13px;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.username {
+  font-size: 14px;
+  color: var(--text-color);
+}
+
+.dropdown-menu {
+  position: absolute;
+  top: 44px;
+  right: 0;
+  list-style: none;
+  padding: 6px 0;
+  margin: 0;
+  background: var(--dropdown-bg);
+  border-radius: 8px;
+  box-shadow: var(--dropdown-shadow);
+  border: 1px solid var(--border-color);
+  min-width: 140px;
+  z-index: 999;
+}
+
+.dropdown-menu li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  font-size: 14px;
+  color: var(--text-color);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.dropdown-menu li:hover {
+  background-color: var(--hover-bg);
+}
+
+.logout-item:hover {
+  color: #ff4d4f;
+}
+
+.dropdown-divider {
+  height: 1px;
+  background: var(--border-color);
+  margin: 4px 8px;
+}
+
+.dropdown-enter-active,
+.dropdown-leave-active {
+  transition: all 0.25s ease;
+}
+
+.dropdown-enter-from,
+.dropdown-leave-to {
+  opacity: 0;
+  transform: translateY(-6px);
+}
+
+/* 消息通知下拉 */
+.msg-dropdown {
+  position: absolute;
+  top: 44px;
+  right: -40px;
+  width: 280px;
+  background: var(--dropdown-bg);
+  border-radius: 8px;
+  box-shadow: var(--dropdown-shadow);
+  border: 1px solid var(--border-color);
+  z-index: 999;
+  overflow: hidden;
+}
+
+.msg-header {
+  padding: 12px 16px;
+  font-size: 14px;
+  font-weight: bold;
+  color: var(--text-color);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.msg-list {
+  max-height: 250px;
+  overflow-y: auto;
+}
+
+.msg-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border-color);
+  transition: background 0.2s;
+}
+
+.msg-item:last-child {
+  border-bottom: none;
+}
+
+.msg-item:hover {
+  background-color: var(--hover-bg);
+}
+
+.msg-icon {
+  font-size: 20px;
+  padding-top: 2px;
+}
+
+.msg-content {
+  flex: 1;
+}
+
+.msg-title {
+  font-size: 13px;
+  color: var(--text-color);
+  margin-bottom: 4px;
+}
+
+.msg-time {
+  font-size: 12px;
+  color: var(--text-color-secondary);
+}
+
+.msg-footer {
+  text-align: center;
+  padding: 10px;
+  font-size: 13px;
+  color: var(--sidebar-bg-active);
+  cursor: pointer;
+  border-top: 1px solid var(--border-color);
+  transition: background 0.2s;
+}
+
+.msg-footer:hover {
+  background: var(--hover-bg);
+}
+
+/* Tab 栏 */
+.layout-tabs {
+  height: var(--tabs-height);
+  background: var(--header-bg);
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  align-items: center;
+  padding: 0 8px;
+  flex-shrink: 0;
+  transition: background-color 0.3s;
+}
+
+.tabs-scroll-container {
+  flex: 1;
+  display: flex;
+  overflow-x: auto;
+  gap: 6px;
+  padding: 0 4px;
+}
+
+.tabs-scroll-container::-webkit-scrollbar {
+  height: 0;
+}
+
+.tab-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  border-radius: 4px;
+  font-size: 13px;
+  color: var(--text-color-secondary);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s;
+  border: 1px solid transparent;
+}
+
+.tab-item:hover {
+  color: var(--text-color);
+  background-color: var(--hover-bg);
+}
+
+.tab-item.active {
+  color: var(--sidebar-bg-active);
+  background: rgba(22, 119, 255, 0.08);
+  border-color: rgba(22, 119, 255, 0.3);
+}
+
+.tab-icon {
+  font-size: 14px;
+}
+
+.tab-close-icon {
+  font-size: 14px;
+  opacity: 0;
+  transition: opacity 0.2s;
+  display: flex;
+  align-items: center;
+  margin-left: 2px;
+}
+
+.tab-item:hover .tab-close-icon {
+  opacity: 0.6;
+}
+
+.tab-close-icon:hover {
+  opacity: 1;
+  color: #ff4d4f;
+}
+
+.tabs-actions {
+  width: 32px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--text-color-secondary);
+  font-size: 16px;
+  border-left: 1px solid var(--border-color);
+  margin-left: 4px;
+}
+
+.tabs-actions:hover {
+  color: var(--text-color);
+}
+
+/* 内容区 */
+.layout-content {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.content-wrapper {
+  padding: 16px;
+}
+
+/* 刷新旋转 */
 .spin-anim {
-  animation: spin 1s linear infinite;
+  animation: spin 0.5s linear;
 }
 
 @keyframes spin {
@@ -601,314 +961,13 @@ onUnmounted(() => {
   }
 }
 
-.badge {
-  position: absolute;
-  top: 10px;
-  right: 6px;
-  background-color: #ff4d4f;
-  color: #fff;
-  font-size: 12px;
-  line-height: 14px;
-  padding: 0 4px;
-  border-radius: 8px;
-  font-weight: bold;
-  transform: scale(0.85);
+/* 页面切换 */
+.fade-slide-enter-active {
+  transition: all 0.3s ease;
 }
 
-.msg-dropdown {
-  position: absolute;
-  top: 48px;
-  right: -60px;
-  width: 300px;
-  background: var(--dropdown-bg);
-  box-shadow: var(--dropdown-shadow);
-  border: 1px solid var(--border-color);
-  border-radius: 6px;
-  overflow: hidden;
-  z-index: 100;
-  cursor: default;
-}
-
-.msg-header {
-  padding: 12px 16px;
-  border-bottom: 1px solid var(--border-color);
-  font-weight: 600;
-  font-size: 14px;
-  display: flex;
-  justify-content: space-between;
-}
-
-.msg-list {
-  max-height: 300px;
-  overflow-y: auto;
-}
-
-.msg-item {
-  display: flex;
-  padding: 12px 16px;
-  border-bottom: 1px solid var(--border-color);
-  cursor: pointer;
-  transition: background 0.3s;
-}
-
-.msg-item:hover {
-  background: var(--hover-bg);
-}
-
-.msg-icon {
-  width: 32px;
-  height: 32px;
-  background: var(--layout-bg);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 18px;
-  margin-right: 12px;
-}
-
-.msg-content {
-  flex: 1;
-  overflow: hidden;
-}
-
-.msg-title {
-  font-size: 14px;
-  color: var(--text-color);
-  margin-bottom: 4px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.msg-time {
-  font-size: 12px;
-  color: var(--text-color-secondary);
-}
-
-.msg-footer {
-  padding: 10px 0;
-  text-align: center;
-  color: var(--sidebar-bg-active);
-  font-size: 14px;
-  cursor: pointer;
-  transition: background 0.3s;
-}
-
-.msg-footer:hover {
-  background: var(--hover-bg);
-}
-
-.user-dropdown {
-  display: flex;
-  align-items: center;
-  height: 100%;
-  padding: 0 12px;
-  cursor: pointer;
-  transition: background-color 0.3s;
-  position: relative;
-}
-
-.user-dropdown:hover {
-  background-color: var(--hover-bg);
-}
-
-.header-text-avatar {
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  background-color: var(--sidebar-bg-active);
-  color: #ffffff;
-  font-size: 14px;
-  font-weight: bold;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-right: 8px;
-  flex-shrink: 0;
-}
-
-.username {
-  font-size: 14px;
-  margin-right: 4px;
-  color: var(--text-color);
-}
-
-.dropdown-menu {
-  position: absolute;
-  top: 48px;
-  right: 0;
-  background: var(--dropdown-bg);
-  min-width: 140px;
-  box-shadow: var(--dropdown-shadow);
-  border: 1px solid var(--border-color);
-  border-radius: 6px;
-  padding: 4px 0;
-  margin: 0;
-  list-style: none;
-  z-index: 100;
-}
-
-.dropdown-menu li {
-  padding: 10px 16px;
-  font-size: 14px;
-  color: var(--text-color);
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  cursor: pointer;
-  transition: background 0.3s;
-}
-
-.dropdown-menu li:hover {
-  background: var(--hover-bg);
-  color: var(--sidebar-bg-active);
-}
-
-.dropdown-menu .logout-item:hover {
-  color: #ff4d4f;
-}
-
-.dropdown-divider {
-  height: 1px;
-  background: var(--border-color);
-  margin: 4px 0;
-}
-
-.dropdown-enter-active,
-.dropdown-leave-active {
-  transition: opacity 0.2s, transform 0.2s;
-  transform-origin: top right;
-}
-
-.dropdown-enter-from,
-.dropdown-leave-to {
-  opacity: 0;
-  transform: scale(0.95);
-}
-
-.layout-tabs {
-  height: var(--tabs-height);
-  background: var(--header-bg);
-  display: flex;
-  align-items: center;
-  z-index: 8;
-  border-top: 1px solid var(--border-color);
-  border-bottom: 1px solid var(--border-color);
-  transition: background-color 0.3s, border-color 0.3s;
-}
-
-.tabs-scroll-container {
-  display: flex;
-  align-items: center;
-  height: 100%;
-  flex: 1;
-  overflow-x: auto;
-}
-
-.tabs-scroll-container::-webkit-scrollbar {
-  display: none;
-}
-
-.tab-item {
-  height: 100%;
-  padding: 0 14px;
-  background: transparent;
-  border-right: 1px solid var(--border-color);
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  cursor: pointer;
-  color: var(--text-color-secondary);
-  transition: all 0.2s;
-  font-size: 13px;
-  position: relative;
-}
-
-.tab-item:hover {
-  color: var(--text-color);
-  background-color: var(--hover-bg);
-}
-
-.tab-item.active {
-  background: var(--content-bg);
-  color: var(--sidebar-bg-active);
-  font-weight: 500;
-}
-
-.tab-item.active::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 2px;
-  background-color: var(--sidebar-bg-active);
-}
-
-.tab-icon {
-  font-size: 15px;
-}
-
-.tab-title {
-  white-space: nowrap;
-  margin-right: 4px;
-}
-
-.tab-close-icon {
-  font-size: 14px;
-  width: 18px;
-  height: 18px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
-  color: var(--text-color-secondary);
-  transition: all 0.2s;
-}
-
-.tab-close-icon:hover {
-  background: rgba(0, 0, 0, 0.08);
-  color: var(--text-color);
-}
-
-.vben-layout.dark-theme .tab-close-icon:hover {
-  background: rgba(255, 255, 255, 0.15);
-}
-
-.tabs-actions {
-  width: 38px;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  background: var(--header-bg);
-  border-left: 1px solid var(--border-color);
-  color: var(--text-color-secondary);
-  transition: all 0.2s;
-}
-
-.tabs-actions:hover {
-  color: var(--sidebar-bg-active);
-  background-color: var(--hover-bg);
-}
-
-.layout-content {
-  flex: 1;
-  padding: 16px;
-  overflow-y: auto;
-  display: flex;
-  flex-direction: column;
-}
-
-.content-wrapper {
-  flex: 1;
-}
-
-.fade-slide-enter-active,
 .fade-slide-leave-active {
-  transition: all 0.2s cubic-bezier(0.2, 0, 0, 1);
+  transition: all 0.2s ease;
 }
 
 .fade-slide-enter-from {
@@ -918,6 +977,5 @@ onUnmounted(() => {
 
 .fade-slide-leave-to {
   opacity: 0;
-  transform: translateX(-10px);
 }
 </style>
