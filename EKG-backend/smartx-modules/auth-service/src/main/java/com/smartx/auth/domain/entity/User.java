@@ -13,6 +13,10 @@ public class User {
     private String username;
     private String password;
     private String realName;
+    private String phone;
+    private String email;
+    private String avatar;
+    private String department;
     // private Long roleId; // 已升级为多角色 RBAC，此字段废弃
     private Integer status;
 }

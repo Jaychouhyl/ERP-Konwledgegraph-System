@@ -129,16 +129,19 @@
 <script setup>
 import { ref, reactive } from 'vue'
 import { Icon } from '@iconify/vue'
+import { useUserStore } from '@/stores/user'
 
 // ================= 1. 用户基础数据 =================
+const userStoreInstance = useUserStore()
+
 const userInfo = reactive({
-  username: 'admin',
-  realName: 'Admin',
-  role: '超级管理员',
-  phone: '13812345678',
-  email: 'admin@smartx.com',
-  department: '核心开发团队',
-  regDate: '2026-01-01'
+  username: userStoreInstance.username || 'admin',
+  realName: userStoreInstance.realName || '未知用户',
+  role: '超级管理员',  // 暂时保留默认值，后续对接 RBAC
+  phone: userStoreInstance.phone || '',
+  email: userStoreInstance.email || '',
+  department: userStoreInstance.department || '',
+  regDate: '2026-01-01'  // 后续可从 userInfo.createTime 获取
 })
 
 // 脱敏手机号工具函数
@@ -166,6 +169,12 @@ const saveEditForm = () => {
   userInfo.realName = editForm.realName
   userInfo.phone = editForm.phone
   userInfo.email = editForm.email
+  // 同步更新到 Pinia store
+  userStoreInstance.updateUserProfile({
+    realName: editForm.realName,
+    phone: editForm.phone,
+    email: editForm.email
+  })
   closeEditModal()
 }
 
